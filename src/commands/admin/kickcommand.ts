@@ -46,49 +46,54 @@ export async function kickcommand(
   if (m.length < 2) {
     if (chan)
       chan.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user> <reason>`
       );
     else if (user)
       user.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user> <reason>`
       );
   } else {
-    let target: User | undefined = await discord.util.parseUser(m[1]);
+    let u = m[1];
+    let target: User | undefined = await discord.util.parseUser(u);
+    m.shift();
+    m.shift();
     if (!target) {
-      if (chan) chan.send(`Error: Invalid user ${m[1]}`);
-      else if (user) user.send(`Error: Invalid user ${m[1]}`);
+      if (chan) chan.send(`Error: Invalid user ${u}`);
+      else if (user) user.send(`Error: Invalid user ${u}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot kick SUPER_ADMIN '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot kick SUPER_ADMIN '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot kick SUPER_ADMIN '${u}'`);
+        else if (user) user.send(`Error: Cannot kick SUPER_ADMIN '${u}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot kick admin '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot kick admin '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot kick admin '${u}'`);
+        else if (user) user.send(`Error: Cannot kick admin '${u}'`);
       } else {
-        if (chan instanceof TextChannel) {
-          let member: GuildMember | undefined = await chan.guild.members.fetch(
-            target
-          );
-          if (member) {
-            let u = m[1];
-            m.shift();
-            m.shift();
-            member
-              .kick(m.join(' '))
-              .then(async () => {
-                if (chan) await chan.send(`Kicked '${u}'`);
-                else if (user) await user.send(`Kicked '${u}'`);
-              })
-              .catch(async (e: Error) => {
-                if (chan)
-                  await chan.send(
-                    `Error: An error occured when attempting to kick '${u}'`
-                  );
-                else if (user)
-                  await user.send(
-                    `Error: An error occured when attempting to kick '${u}'`
-                  );
-              });
+        if (m.length < 1) {
+          if (chan) chan.send(`Error: Must include reason`);
+          else if (user) user.send(`Error: Must include reason`);
+        } else {
+          if (chan instanceof TextChannel) {
+            let member:
+              | GuildMember
+              | undefined = await chan.guild.members.fetch(target);
+            if (member) {
+              member
+                .kick(m.join(' '))
+                .then(async () => {
+                  if (chan) await chan.send(`Kicked '${u}'`);
+                  else if (user) await user.send(`Kicked '${u}'`);
+                })
+                .catch(async (e: Error) => {
+                  if (chan)
+                    await chan.send(
+                      `Error: An error occured when attempting to kick '${u}'`
+                    );
+                  else if (user)
+                    await user.send(
+                      `Error: An error occured when attempting to kick '${u}'`
+                    );
+                });
+            }
           }
         }
       }
