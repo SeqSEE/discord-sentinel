@@ -69,6 +69,12 @@ export default class DiscordUtil {
     return messages;
   }
 
+  public parseArgs(message: string): string[] {
+    let m = message.split(/\s+/);
+    m.shift();
+    return m;
+  }
+
   public async getUserFromID(id: string): Promise<User | undefined> {
     let user: User | undefined = undefined;
     user = await this.client.users.fetch(id);

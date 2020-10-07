@@ -42,8 +42,10 @@ export async function kickcommand(
     else if (user) user.send('Error: Permission Denied');
     return;
   }
+  let args = discord.util.parseArgs(messageObj.content);
   let m = messageObj.content.split(/\s+/);
-  if (m.length < 3) {
+  let u = m[1];
+  if (args.length < 2) {
     if (chan)
       chan.send(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user> <reason>`
@@ -53,10 +55,8 @@ export async function kickcommand(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user> <reason>`
       );
   } else {
-    let u = m[1];
-    let target: User | undefined = await discord.util.parseUser(u);
-    m.shift();
-    m.shift();
+    let target: User | undefined = await discord.util.parseUser(args[0]);
+    args.shift();
     if (!target) {
       if (chan) chan.send(`Error: Invalid user ${u}`);
       else if (user) user.send(`Error: Invalid user ${u}`);
