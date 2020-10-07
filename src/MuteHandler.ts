@@ -23,11 +23,19 @@
 import DiscordHandler from './internal/DiscordHandler';
 
 export default class MuteHandler {
-  constructor(discord: DiscordHandler) {}
-  mute(id: string, level: number, reason: string) {
+  private discord: DiscordHandler;
+  constructor(discord: DiscordHandler) {
+    this.discord = discord;
+    this.load();
+  }
+  public mute(id: string, level: number, reason: string) {
     throw new Error('Method not implemented.');
   }
-  load() {}
+  private load() {
+    throw new Error('Method not implemented.');
+  }
 
-  save() {}
+  public save() {
+    throw new Error('Method not implemented.');
+  }
 }
