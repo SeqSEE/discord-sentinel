@@ -1,10 +1,10 @@
 {
-  "name": "discord-bot-boilerplate",
+  "name": "discord-sentinel",
   "version": "1.0.0",
-  "description": "TypeScript boiler plate for Discord Bots",
+  "description": "A robust and lightweight bot used to manage and secure discord guilds.",
   "main": "dist/index.js",
   "scripts": {
-    "clean": "rm -rf dist && rm -rf disabledcommands.json",
+    "clean": "rm -rf dist && rm -rf ./data/error.log && rm -rf ./data/debug.log",
     "build": "tsc",
     "start": "node ./dist/index.js > ./data/debug.log 2> ./data/error.log"
   },

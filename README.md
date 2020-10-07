@@ -1,5 +1,8 @@
+![Discord Sentinel Logo](https://raw.githubusercontent.com/SeqSEE/discord-sentinel/master/defaultIcon.png)
+
 # discord sentinel
-A robust bot used to manage and secure discord guilds.
+
+A robust and lightweight bot used to manage and secure discord guilds.
 
 ### Prerequisites
 
