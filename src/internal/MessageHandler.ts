@@ -21,7 +21,7 @@
  */
 
 import CommandHandler from './CommandHandler';
-import Command from './Command';
+import MessageObject from '../interface/MessageObject';
 
 export default class MessageHandler {
   private commandHandler: CommandHandler;
@@ -34,11 +34,7 @@ export default class MessageHandler {
     return this.commandHandler;
   }
 
-  public handleMessage(msgObj: {
-    channel: string;
-    author: string;
-    content: string;
-  }) {
+  public handleMessage(msgObj: MessageObject) {
     let m = msgObj.content.split(' ');
     if (m.length > this.commandHandler.getCmdPrefix().length - 1) {
       if (this.commandHandler) {
