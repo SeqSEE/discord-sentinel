@@ -20,4 +20,14 @@
  THE SOFTWARE.
  */
 
-export default class MuteHandler {}
+import DiscordHandler from './internal/DiscordHandler';
+
+export default class MuteHandler {
+  constructor(discord: DiscordHandler) {}
+  mute(id: string, level: number, reason: string) {
+    throw new Error('Method not implemented.');
+  }
+  load() {}
+
+  save() {}
+}

@@ -24,10 +24,12 @@ import { TextChannel, User } from 'discord.js';
 import MessageObject from '../../interface/MessageObject';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
+import WarningHandler from '../../WarningHandler';
 
 export async function warncommand(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
+  warnHandler: WarningHandler,
   messageObj: MessageObject
 ): Promise<void> {
   let user = await discord.getClient().users.fetch(messageObj.author);
@@ -42,8 +44,8 @@ export async function warncommand(
     else if (user) user.send('Error: Permission Denied');
     return;
   }
-  let m = messageObj.content.split(/\s+/);
-  if (m.length < 2) {
+  let args = discord.util.parseArgs(messageObj.content);
+  if (args.length < 3) {
     if (chan)
       chan.send(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <level> <user> <reason>`
@@ -53,19 +55,24 @@ export async function warncommand(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <level> <user> <reason>`
       );
   } else {
-    let target: User | undefined = await discord.util.parseUser(m[1]);
+    let level = Number(args[0]);
+    let target: User | undefined = await discord.util.parseUser(args[1]);
+
     if (!target) {
-      if (chan) chan.send(`Error: Invalid user ${m[1]}`);
-      else if (user) user.send(`Error: Invalid user ${m[1]}`);
+      if (chan) chan.send(`Error: Invalid user ${args[1]}`);
+      else if (user) user.send(`Error: Invalid user ${args[1]}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot warn SUPER_ADMIN '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot warn SUPER_ADMIN '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot warn SUPER_ADMIN '${args[1]}'`);
+        else if (user) user.send(`Error: Cannot warn SUPER_ADMIN '${args[1]}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot warn admin '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot warn admin '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot warn admin '${args[1]}'`);
+        else if (user) user.send(`Error: Cannot warn admin '${args[1]}'`);
       } else {
-        //warn the user
+        args.shift();
+        args.shift();
+        let reason = args.join(' ');
+        warnHandler.warn(messageObj.channel, target.id, level, reason);
       }
     }
   }
