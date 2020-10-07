@@ -43,8 +43,8 @@ export async function disablecommand(
     else if (user) user.send('Error: Permission Denied');
     return;
   }
-  let m = messageObj.content.split(/\s+/);
-  if (m.length < 2) {
+  let args = discord.util.parseArgs(messageObj.content);
+  if (args.length < 1) {
     if (chan)
       chan.send(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}disablecommand <command>`
@@ -54,7 +54,7 @@ export async function disablecommand(
         `Error: Invalid arguments\nUsage:\n${cmdHandler}disablecommand <command>`
       );
   } else {
-    const command = m[1];
+    const command = args[0];
     const cmd: Command | undefined = cmdHandler
       .getCommandsMap()
       .get(`${command}`);
