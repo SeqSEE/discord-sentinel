@@ -43,8 +43,6 @@ export async function kickcommand(
     return;
   }
   let args = discord.util.parseArgs(messageObj.content);
-  let m = messageObj.content.split(/\s+/);
-  let u = m[1];
   if (args.length < 2) {
     if (chan)
       chan.send(
@@ -55,7 +53,8 @@ export async function kickcommand(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user> <reason>`
       );
   } else {
-    let target: User | undefined = await discord.util.parseUser(args[0]);
+    let u = args[0];
+    let target: User | undefined = await discord.util.parseUser(u);
     args.shift();
     if (!target) {
       if (chan) chan.send(`Error: Invalid user ${u}`);
@@ -68,7 +67,7 @@ export async function kickcommand(
         if (chan) chan.send(`Error: Cannot kick admin '${u}'`);
         else if (user) user.send(`Error: Cannot kick admin '${u}'`);
       } else {
-        if (m.length < 1) {
+        if (args.length < 1) {
           if (chan) chan.send(`Error: Must include reason`);
           else if (user) user.send(`Error: Must include reason`);
         } else {
@@ -78,7 +77,7 @@ export async function kickcommand(
               | undefined = await chan.guild.members.fetch(target);
             if (member) {
               member
-                .kick(m.join(' '))
+                .kick(args.join(' '))
                 .then(async () => {
                   if (chan) await chan.send(`Kicked '${u}'`);
                   else if (user) await user.send(`Kicked '${u}'`);

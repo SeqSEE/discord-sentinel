@@ -36,7 +36,6 @@ export async function help(
   let chan: TextChannel | null =
     c instanceof TextChannel ? (c as TextChannel) : null;
   let m = messageObj.content.split(/\s+/);
-  let commands = cmdHandler.getCommands();
   let helpEmbed = {
     embed: {
       color: 8359053,
