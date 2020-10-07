@@ -72,7 +72,7 @@ export async function warncommand(
         args.shift();
         args.shift();
         let reason = args.join(' ');
-        warnHandler.warn(messageObj.channel, target.id, level, reason);
+        await warnHandler.warn(messageObj.channel, target.id, level, reason);
       }
     }
   }

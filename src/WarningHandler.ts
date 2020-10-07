@@ -40,7 +40,7 @@ export default class WarningHandler {
     id: string,
     level: number,
     reason: string
-  ) {
+  ): Promise<void> {
     let lvl: number =
       this.warnings.get(id) === undefined
         ? 0
@@ -82,12 +82,12 @@ export default class WarningHandler {
         },
       },
     };
+    this.warnings.set(id, lvl);
+    this.save();
     let chan = await this.discord.getClient().channels.fetch(channel);
     if (chan instanceof TextChannel) {
       (chan as TextChannel).send(warnEmbed);
     }
-    this.warnings.set(id, lvl);
-    this.save();
   }
 
   private load() {
