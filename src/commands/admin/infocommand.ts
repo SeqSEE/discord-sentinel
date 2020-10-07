@@ -183,6 +183,8 @@ export async function infocommand(
             },
           },
         };
+        if (chan) await chan.send(infoEmbed);
+        else if (user) await user.send(infoEmbed);
       }
     }
   }
