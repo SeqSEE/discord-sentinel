@@ -1,6 +1,5 @@
-# discord bot boilerplate
-
-A simple TypeScript boilerplate for a Discord bot.
+# discord sentinel
+A robust bot used to manage and secure discord guilds.
 
 ### Prerequisites
 
@@ -9,16 +8,16 @@ A simple TypeScript boilerplate for a Discord bot.
 
 ### Setup
 
-- clone the repo
+- clone
 
 ```
-git clone https://github.com/SeqSEE/discord-bot-boilerplate.git
+git clone https://github.com/SeqSEE/discord-sentinel.git
 ```
 
 - install the dependencies
 
 ```
-cd discord-bot-boilerplate
+cd discord-sentinel
 ```
 
 ```
