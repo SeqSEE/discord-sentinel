@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rm -rf dist && rm -rf disabledcommands.json",
     "build": "tsc",
-    "start": "node ./dist/index.js > ./dist/debug.log 2> ./dist/error.log"
+    "start": "node ./dist/index.js > ./data/debug.log 2> ./data/error.log"
   },
   "author": "SeqSEE",
   "license": "MIT",
