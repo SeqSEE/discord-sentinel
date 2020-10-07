@@ -43,7 +43,7 @@ export async function kickcommand(
     return;
   }
   let m = messageObj.content.split(/\s+/);
-  if (m.length < 2) {
+  if (m.length < 3) {
     if (chan)
       chan.send(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user> <reason>`
