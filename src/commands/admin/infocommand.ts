@@ -20,8 +20,16 @@
  THE SOFTWARE.
  */
 
-import { TextChannel, User } from 'discord.js';
+import {
+  Collection,
+  GuildMember,
+  PresenceStatus,
+  Role,
+  TextChannel,
+  User,
+} from 'discord.js';
 import MessageObject from '../../interface/MessageObject';
+import UserInfo from '../../interface/UserInfo';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
 
@@ -58,7 +66,124 @@ export async function infocommand(
       if (chan) chan.send(`Error: Invalid user ${m[1]}`);
       else if (user) user.send(`Error: Invalid user ${m[1]}`);
     } else {
-      //user info
+      if (chan instanceof TextChannel) {
+        let bans = await (chan as TextChannel).guild.fetchBans();
+        let ban: { user: User; reason: string } | undefined = bans
+          .filter((b) => b.user.id === user!.id)
+          .first();
+        let status: PresenceStatus = user.presence.status;
+        let g: GuildMember = await (chan as TextChannel).guild.members.fetch(
+          user
+        );
+        let joined: Date = (g.joinedAt as Date) || new Date();
+        let createdAt: Date = user.createdAt;
+        let display = `${user.username}#${user.discriminator}`;
+        let nick = g.nickname || '';
+        let mainRole: Role = g.roles.highest;
+        let t: Collection<string, Role> = g.roles.cache;
+        let roles: string[] = [];
+        for (let role of t) {
+          roles.push(role[1].name);
+        }
+        let i: UserInfo;
+        if (!ban)
+          i = {
+            admin: cmdHandler.isAdmin(user.id),
+            status,
+            joined: joined.toString(),
+            createdAt: createdAt.toString(),
+            display,
+            nick,
+            mainRole: mainRole.name,
+            roles,
+            ban: {},
+          };
+        else
+          i = {
+            admin: cmdHandler.isAdmin(user.id),
+            status,
+            joined: joined.toString(),
+            createdAt: createdAt.toString(),
+            display,
+            nick,
+            mainRole: mainRole.name,
+            roles,
+            ban,
+          };
+
+        let infoEmbed = {
+          embed: {
+            color: 8359053,
+            author: {
+              name: process.env.BOT_NAME as string,
+              icon_url: process.env.ICON_URL as string,
+            },
+            title: `${target.bot ? 'Bot' : 'User'} Information`,
+            url: (await target.fetch()).displayAvatarURL,
+            description: `${
+              target.bot ? '**[BOT]**  ' : i.admin ? '**[ADMIN]**  ' : ''
+            }<@${target.id}> -- ${target.id}`,
+            fields: [
+              {
+                name: 'Joined',
+                value: i.joined,
+                inline: false,
+              },
+              {
+                name: 'Account Creation',
+                value: i.createdAt,
+                inline: false,
+              },
+              {
+                name: 'All Roles',
+                value: `[${i.roles.join(',')}]`,
+                inline: false,
+              },
+              {
+                name: 'Nickname',
+                value: i.nick.length > 0 ? i.nick : 'none',
+                inline: true,
+              },
+              {
+                name: 'Main Role',
+                value: i.mainRole,
+                inline: true,
+              },
+              {
+                name: 'Status',
+                value: i.status,
+                inline: true,
+              },
+              {
+                name: 'Warning Level',
+                value: '0/10',
+                inline: true,
+              },
+              {
+                name: 'Mute',
+                value: 'Not Muted',
+                inline: true,
+              },
+              {
+                name: 'Ban',
+                value:
+                  Object.values(i.ban).length > 0
+                    ? JSON.stringify(i.ban, null, 2)
+                    : 'Not Banned',
+                inline: true,
+              },
+            ],
+            timestamp: new Date(),
+            image: {
+              url: `https://cdn.discordapp.com/avatars/${target.id}/${target.avatar}.png`,
+            },
+            footer: {
+              icon_url: process.env.ICON_URL as string,
+              text: process.env.BOT_NAME as string,
+            },
+          },
+        };
+      }
     }
   }
 }
