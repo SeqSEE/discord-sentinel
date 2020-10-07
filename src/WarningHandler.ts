@@ -19,13 +19,21 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  */
+
+import fs from 'fs';
+import path from 'path';
 import { TextChannel } from 'discord.js';
 import DiscordHandler from './internal/DiscordHandler';
 
+const warningsFile = '../../data/warnings.json';
+
 export default class WarningHandler {
   private discord: DiscordHandler;
+  private warnings: Map<string, number>;
   constructor(discord: DiscordHandler) {
     this.discord = discord;
+    this.warnings = new Map<string, number>();
+    this.load();
   }
   public async warn(
     channel: string,
@@ -33,8 +41,10 @@ export default class WarningHandler {
     level: number,
     reason: string
   ) {
-    let lvl = 0 + level;
-    let maxLevel = 0;
+    let lvl: number =
+      this.warnings.get(id) === undefined
+        ? 0
+        : Number(this.warnings.get(id)) + level;
     let warnEmbed = {
       embed: {
         color: 8359053,
@@ -53,7 +63,7 @@ export default class WarningHandler {
           },
           {
             name: `Warning Level`,
-            value: `${lvl}/${maxLevel}`,
+            value: `${lvl}/${Number(process.env.MAX_WARN)}`,
             inline: false,
           },
           {
@@ -76,9 +86,34 @@ export default class WarningHandler {
     if (chan instanceof TextChannel) {
       (chan as TextChannel).send(warnEmbed);
     }
+    this.warnings.set(id, lvl);
+    this.save();
   }
 
-  load() {}
+  private load() {
+    if (fs.existsSync(warningsFile)) {
+      let w: { id: string; level: number }[] = JSON.parse(
+        fs.readFileSync(warningsFile).toString('utf8')
+      );
+      w.forEach((warn) => {
+        this.warnings.set(warn.id, warn.level);
+      });
+    }
+  }
 
-  save() {}
+  public save(): void {
+    let w: { id: string; level: number }[] = [];
+    Object.keys(this.warnings).forEach((id) => {
+      w.push({ id, level: Number(this.warnings.get(id)) });
+    });
+    fs.writeFile(
+      path.join(__dirname, warningsFile),
+      JSON.stringify(w, null, 2),
+      function (err) {
+        if (err) {
+          console.log(err);
+        }
+      }
+    );
+  }
 }
