@@ -84,6 +84,7 @@ export async function kickcommand(
                   else if (user) await user.send(`Kicked '${u}'`);
                 })
                 .catch(async (e: Error) => {
+                  console.log(JSON.stringify(e));
                   if (chan)
                     await chan.send(
                       `Error: An error occured when attempting to kick '${u}'`
