@@ -20,4 +20,22 @@
  THE SOFTWARE.
  */
 
-export default class MuteHandler {}
+import DiscordHandler from './internal/DiscordHandler';
+
+export default class MuteHandler {
+  private discord: DiscordHandler;
+  constructor(discord: DiscordHandler) {
+    this.discord = discord;
+    this.load();
+  }
+  public mute(id: string, level: number, reason: string) {
+    throw new Error('Method not implemented.');
+  }
+  private load() {
+    throw new Error('Method not implemented.');
+  }
+
+  public save() {
+    throw new Error('Method not implemented.');
+  }
+}
