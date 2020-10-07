@@ -20,7 +20,7 @@
  THE SOFTWARE.
  */
 
-import { TextChannel, User } from 'discord.js';
+import { GuildMember, TextChannel, User } from 'discord.js';
 import MessageObject from '../../interface/MessageObject';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
@@ -65,7 +65,32 @@ export async function kickcommand(
         if (chan) chan.send(`Error: Cannot kick admin '${m[1]}'`);
         else if (user) user.send(`Error: Cannot kick admin '${m[1]}'`);
       } else {
-        //kick the user
+        if (chan instanceof TextChannel) {
+          let member: GuildMember | undefined = await chan.guild.members.fetch(
+            target
+          );
+          if (member) {
+            let u = m[1];
+            m.shift();
+            m.shift();
+            member
+              .kick(m.join(' '))
+              .then(async () => {
+                if (chan) await chan.send(`Kicked '${u}'`);
+                else if (user) await user.send(`Kicked '${u}'`);
+              })
+              .catch(async (e: Error) => {
+                if (chan)
+                  await chan.send(
+                    `Error: An error occured when attempting to kick '${u}'`
+                  );
+                else if (user)
+                  await user.send(
+                    `Error: An error occured when attempting to kick '${u}'`
+                  );
+              });
+          }
+        }
       }
     }
   }
