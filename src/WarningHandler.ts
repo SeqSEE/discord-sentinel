@@ -30,11 +30,30 @@ const warningsFile = '../../data/warnings.json';
 export default class WarningHandler {
   private discord: DiscordHandler;
   private warnings: Map<string, number>;
+  private checking: boolean;
+  private warningLoop: NodeJS.Timeout | null;
   constructor(discord: DiscordHandler) {
     this.discord = discord;
     this.warnings = new Map<string, number>();
+    this.checking = false;
+    this.warningLoop = null;
     this.load();
   }
+
+  private check() {
+    if (this.checking) return;
+    this.checking = true;
+    Object.keys(this.warnings).forEach((warning) => {
+      let level = Number(this.warnings.get(warning));
+      if (level - 1 > 1) {
+        this.warnings.delete(warning);
+      } else {
+        this.warnings.set(warning, level - 1);
+      }
+    });
+    this.save();
+  }
+
   public async warn(
     channel: string,
     id: string,
@@ -99,12 +118,16 @@ export default class WarningHandler {
         this.warnings.set(warn.id, warn.level);
       });
     }
+    this.warningLoop = setInterval(() => {
+      this.check();
+    }, 3600000);
   }
 
   public save(): void {
     let w: { id: string; level: number }[] = [];
     Object.keys(this.warnings).forEach((id) => {
-      w.push({ id, level: Number(this.warnings.get(id)) });
+      let level = Number(this.warnings.get(id));
+      if (level > 0) w.push({ id, level });
     });
     fs.writeFile(
       path.join(__dirname, warningsFile),
