@@ -24,10 +24,12 @@ import { TextChannel, User } from 'discord.js';
 import MessageObject from '../../interface/MessageObject';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
+import WarningHandler from '../../WarningHandler';
 
-export async function mutecommand(
+export async function pardon(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
+  warnHandler: WarningHandler,
   messageObj: MessageObject
 ): Promise<void> {
   let user = await discord.getClient().users.fetch(messageObj.author);
@@ -42,30 +44,35 @@ export async function mutecommand(
     else if (user) user.send('Error: Permission Denied');
     return;
   }
-  let m = messageObj.content.split(/\s+/);
-  if (m.length < 2) {
+  let args = discord.util.parseArgs(messageObj.content);
+  if (args.length < 3) {
     if (chan)
       chan.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}mute <user> (length)`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}pardon <user> <level>`
       );
     else if (user)
       user.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}mute <user> (length)`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}pardon <user> <level>`
       );
   } else {
-    let target: User | undefined = await discord.util.parseUser(m[1]);
+    let target: User | undefined = await discord.util.parseUser(args[0]);
+    let level = Number(args[1]);
     if (!target) {
-      if (chan) chan.send(`Error: Invalid user ${m[1]}`);
-      else if (user) user.send(`Error: Invalid user ${m[1]}`);
+      if (chan) chan.send(`Error: Invalid user ${args[0]}`);
+      else if (user) user.send(`Error: Invalid user ${args[0]}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot mute SUPER_ADMIN '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot mute SUPER_ADMIN '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot pardon SUPER_ADMIN '${args[0]}'`);
+        else if (user)
+          user.send(`Error: Cannot pardon SUPER_ADMIN '${args[0]}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot mute admin '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot mute admin '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot pardon admin '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot pardon admin '${args[0]}'`);
       } else {
-        //mute the user
+        warnHandler.pardon(target.id, level);
+        if (chan) chan.send(`Lowered ${args[0]}'s warning level by ${level}`);
+        else if (user)
+          user.send(`Lowered ${args[0]}'s warning level by ${level}`);
       }
     }
   }

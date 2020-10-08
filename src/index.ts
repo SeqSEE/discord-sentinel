@@ -41,7 +41,13 @@ let start = async (disabled: string[], admins: string[]) => {
     admins
   );
   const msgHandler: MessageHandler = new MessageHandler(cmdHandler);
-  const commands = new Commands(discord, cmdHandler, msgHandler);
+  const commands = new Commands(
+    discord,
+    cmdHandler,
+    msgHandler,
+    muteHandler,
+    warnHandler
+  );
   await commands.registerCommands();
   Object.values(disabled).forEach((d) => {
     let cmd = cmdHandler.getCommandsMap().get(`${d as string}`);
@@ -54,6 +60,7 @@ let start = async (disabled: string[], admins: string[]) => {
   client.on('ready', async () => {
     if (((process.env.DEBUG as unknown) as number) === 1)
       console.log(`Logged in as ${client.user!.tag}!`);
+    muteHandler.setup();
     let chan: TextChannel | null =
       (await client.channels.fetch(
         process.env.DEFAULT_CHAN as string

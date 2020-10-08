@@ -20,14 +20,16 @@
  THE SOFTWARE.
  */
 
-import { GuildMember, TextChannel, User } from 'discord.js';
+import { TextChannel, User } from 'discord.js';
 import MessageObject from '../../interface/MessageObject';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
+import WarningHandler from '../../WarningHandler';
 
-export async function kickcommand(
+export async function warn(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
+  warnHandler: WarningHandler,
   messageObj: MessageObject
 ): Promise<void> {
   let user = await discord.getClient().users.fetch(messageObj.author);
@@ -43,59 +45,33 @@ export async function kickcommand(
     return;
   }
   let args = discord.util.parseArgs(messageObj.content);
-  if (args.length < 2) {
+  if (args.length < 3) {
     if (chan)
       chan.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user> <reason>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <user> <level> <reason>`
       );
     else if (user)
       user.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user> <reason>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <user> <level> <reason>`
       );
   } else {
-    let u = args[0];
-    let target: User | undefined = await discord.util.parseUser(u);
-    args.shift();
+    let target: User | undefined = await discord.util.parseUser(args[0]);
+    let level = Number(args[1]);
     if (!target) {
-      if (chan) chan.send(`Error: Invalid user ${u}`);
-      else if (user) user.send(`Error: Invalid user ${u}`);
+      if (chan) chan.send(`Error: Invalid user ${args[0]}`);
+      else if (user) user.send(`Error: Invalid user ${args[0]}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot kick SUPER_ADMIN '${u}'`);
-        else if (user) user.send(`Error: Cannot kick SUPER_ADMIN '${u}'`);
+        if (chan) chan.send(`Error: Cannot warn SUPER_ADMIN '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot warn SUPER_ADMIN '${args[0]}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot kick admin '${u}'`);
-        else if (user) user.send(`Error: Cannot kick admin '${u}'`);
+        if (chan) chan.send(`Error: Cannot warn admin '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot warn admin '${args[0]}'`);
       } else {
-        if (args.length < 1) {
-          if (chan) chan.send(`Error: Must include reason`);
-          else if (user) user.send(`Error: Must include reason`);
-        } else {
-          if (chan instanceof TextChannel) {
-            let member:
-              | GuildMember
-              | undefined = await chan.guild.members.fetch(target);
-            if (member) {
-              member
-                .kick(args.join(' '))
-                .then(async () => {
-                  if (chan) await chan.send(`Kicked '${u}'`);
-                  else if (user) await user.send(`Kicked '${u}'`);
-                })
-                .catch(async (e: Error) => {
-                  console.log(JSON.stringify(e));
-                  if (chan)
-                    await chan.send(
-                      `Error: An error occured when attempting to kick '${u}'`
-                    );
-                  else if (user)
-                    await user.send(
-                      `Error: An error occured when attempting to kick '${u}'`
-                    );
-                });
-            }
-          }
-        }
+        args.shift();
+        args.shift();
+        let reason = args.join(' ');
+        await warnHandler.warn(messageObj.channel, target.id, level, reason);
       }
     }
   }
