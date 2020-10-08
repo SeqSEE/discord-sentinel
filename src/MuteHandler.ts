@@ -22,7 +22,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { TextChannel } from 'discord.js';
+import { Channel, Guild, GuildChannel, Role, TextChannel } from 'discord.js';
 import DiscordHandler from './internal/DiscordHandler';
 
 const mutedFile = '../../data/muted.json';
@@ -141,5 +141,35 @@ export default class MuteHandler {
         }
       }
     );
+  }
+
+  public async setup(): Promise<void> {
+    let guild: Guild = ((await this.discord
+      .getClient()
+      .channels.fetch(process.env.DEFAULT_CHAN as string)) as TextChannel)
+      .guild;
+    let role: Role | undefined = guild.roles.cache.find(
+      (role) => role.name === 'sentinel-muted'
+    );
+    if (role) {
+      guild.channels.cache.forEach(async (channel: Channel) => {
+        if (channel instanceof GuildChannel) {
+          channel.updateOverwrite(role as Role, { SEND_MESSAGES: false });
+        }
+      });
+    } else {
+      role = await guild.roles.create({
+        data: {
+          name: 'sentinel-muted',
+          color: 'RED',
+        },
+        reason: 'Some people do not need to be heard',
+      });
+      guild.channels.cache.forEach(async (channel: Channel) => {
+        if (channel instanceof GuildChannel) {
+          channel.updateOverwrite(role as Role, { SEND_MESSAGES: false });
+        }
+      });
+    }
   }
 }

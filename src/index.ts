@@ -54,6 +54,7 @@ let start = async (disabled: string[], admins: string[]) => {
   client.on('ready', async () => {
     if (((process.env.DEBUG as unknown) as number) === 1)
       console.log(`Logged in as ${client.user!.tag}!`);
+    muteHandler.setup();
     let chan: TextChannel | null =
       (await client.channels.fetch(
         process.env.DEFAULT_CHAN as string
