@@ -21,16 +21,23 @@ import { TextChannel } from 'discord.js';
  THE SOFTWARE.
  */
 
+import fs from 'fs';
+import path from 'path';
 import DiscordHandler from './internal/DiscordHandler';
+
+const mutedFile = '../../data/muted.json';
 
 export default class MuteHandler {
   private discord: DiscordHandler;
   private muted: Map<string, number>;
   private checking: boolean;
+  private mutedLoop: NodeJS.Timeout | null;
+
   constructor(discord: DiscordHandler) {
     this.discord = discord;
     this.muted = new Map<string, number>();
     this.checking = false;
+    this.mutedLoop = null;
     this.load();
   }
 
@@ -107,10 +114,33 @@ export default class MuteHandler {
     this.save();
   }
   private load() {
-    throw new Error('Method not implemented.');
+    if (fs.existsSync(mutedFile)) {
+      let m: { id: string; end: number }[] = JSON.parse(
+        fs.readFileSync(mutedFile).toString('utf8')
+      );
+      m.forEach((mute) => {
+        this.muted.set(mute.id, mute.end);
+      });
+    }
+    this.mutedLoop = setInterval(() => {
+      this.check();
+    }, 60000);
   }
 
-  public save() {
-    throw new Error('Method not implemented.');
+  public save(): void {
+    let m: { id: string; end: number }[] = [];
+    Object.keys(this.muted).forEach((id) => {
+      let end = Number(this.muted.get(id));
+      if (Math.floor(Date.now() / 1000) - end < 0) m.push({ id, end });
+    });
+    fs.writeFile(
+      path.join(__dirname, mutedFile),
+      JSON.stringify(m, null, 2),
+      function (err) {
+        if (err) {
+          console.log(err);
+        }
+      }
+    );
   }
 }
