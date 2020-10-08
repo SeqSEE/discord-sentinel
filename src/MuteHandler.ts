@@ -1,3 +1,4 @@
+import { TextChannel } from 'discord.js';
 /*
  * Copyright 2020 Cryptech Services
  *
@@ -24,12 +25,86 @@ import DiscordHandler from './internal/DiscordHandler';
 
 export default class MuteHandler {
   private discord: DiscordHandler;
+  private muted: Map<string, number>;
+  private checking: boolean;
   constructor(discord: DiscordHandler) {
     this.discord = discord;
+    this.muted = new Map<string, number>();
+    this.checking = false;
     this.load();
   }
-  public mute(id: string, length: number, reason: string) {
-    throw new Error('Method not implemented.');
+
+  private check() {
+    if (this.checking) return;
+    this.checking = true;
+    Object.keys(this.muted).forEach((mute) => {
+      let end = Number(this.muted.get(mute));
+      if (Math.floor(Date.now() / 1000) - end > 0) {
+        this.muted.delete(mute);
+        //remove role to allow to talk
+      }
+    });
+    this.save();
+    this.checking = false;
+  }
+
+  public async mute(
+    channel: string,
+    id: string,
+    length: number,
+    reason: string
+  ) {
+    let end = Math.floor(Date.now() / 1000) + length;
+    let date = new Date(end * 1000);
+    let hours = date.getHours();
+    let minutes = '0' + date.getMinutes();
+    let seconds = '0' + date.getSeconds();
+    let formattedTime =
+      hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+
+    let muteEmbed = {
+      embed: {
+        color: 8359053,
+        author: {
+          name: process.env.BOT_NAME as string,
+          icon_url: process.env.ICON_URL as string,
+        },
+        title: `**MUTED**`,
+        url: '',
+        description: `** **`,
+        fields: [
+          {
+            name: `Offender`,
+            value: `<@${id}>`,
+            inline: false,
+          },
+          {
+            name: `Reason`,
+            value: `${reason}`,
+            inline: false,
+          },
+          {
+            name: `Ends`,
+            value: `${formattedTime}`,
+            inline: false,
+          },
+        ],
+        timestamp: new Date(),
+        image: {
+          url: '',
+        },
+        footer: {
+          iconURL: process.env.ICON_URL as string,
+          text: process.env.BOT_NAME as string,
+        },
+      },
+    };
+    this.muted.set(id, end);
+    let chan = await this.discord.getClient().channels.fetch(channel);
+    if (chan instanceof TextChannel) {
+      (chan as TextChannel).send(muteEmbed);
+    }
+    this.save();
   }
   private load() {
     throw new Error('Method not implemented.');
