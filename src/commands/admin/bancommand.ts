@@ -42,8 +42,8 @@ export async function bancommand(
     else if (user) user.send('Error: Permission Denied');
     return;
   }
-  let m = messageObj.content.split(/\s+/);
-  if (m.length < 2) {
+  let args = discord.util.parseArgs(messageObj.content);
+  if (args.length < 3) {
     if (chan)
       chan.send(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}ban <user> <history> <reason>`
@@ -53,20 +53,24 @@ export async function bancommand(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}ban <user> <history> <reason>`
       );
   } else {
-    let target: User | undefined = await discord.util.parseUser(m[1]);
+    let target: User | undefined = await discord.util.parseUser(args[0]);
+    args.shift();
     if (!target) {
-      if (chan) chan.send(`Error: Invalid user ${m[1]}`);
-      else if (user) user.send(`Error: Invalid user ${m[1]}`);
+      if (chan) chan.send(`Error: Invalid user ${target}`);
+      else if (user) user.send(`Error: Invalid user ${target}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot ban SUPER_ADMIN '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot ban SUPER_ADMIN '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot ban SUPER_ADMIN '${target}'`);
+        else if (user) user.send(`Error: Cannot ban SUPER_ADMIN '${target}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot ban admin '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot ban admin '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot ban admin '${target}'`);
+        else if (user) user.send(`Error: Cannot ban admin '${target}'`);
       } else {
-        //ban the users
+        if (args.length < 2) {
+          if (chan) chan.send(`Error: Must include reason`);
+          else if (user) user.send(`Error: Must include reason`);
       }
     }
+  }
   }
 }
