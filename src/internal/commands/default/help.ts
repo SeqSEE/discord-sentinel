@@ -64,7 +64,7 @@ export async function help(
       },
     },
   };
-  if (args.length < 2) {
+  if (args.length < 1) {
     if (chan) chan.send(helpEmbed);
     else if (user) user.send(helpEmbed);
   } else {
