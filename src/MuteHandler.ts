@@ -40,14 +40,24 @@ export default class MuteHandler {
     this.load();
   }
 
-  private check() {
+  private async check() {
     if (this.checking) return;
     this.checking = true;
-    Object.keys(this.muted).forEach((mute) => {
+    Object.keys(this.muted).forEach(async (mute) => {
       let end = Number(this.muted.get(mute));
       if (Math.floor(Date.now() / 1000) - end > 0) {
         this.muted.delete(mute);
-        //remove role to allow to talk
+        let guild: Guild = ((await this.discord
+          .getClient()
+          .channels.fetch(process.env.DEFAULT_CHAN as string)) as TextChannel)
+          .guild;
+        let role: Role | undefined = guild.roles.cache.find(
+          (role) => role.name === 'sentinel-muted'
+        );
+        if (role) {
+          let member = await guild.members.fetch(mute);
+          if (member) await member.roles.remove(role as Role);
+        }
       }
     });
     this.save();
@@ -169,6 +179,12 @@ export default class MuteHandler {
         if (channel instanceof GuildChannel) {
           channel.updateOverwrite(role as Role, { SEND_MESSAGES: false });
         }
+      });
+    }
+    if (role) {
+      Object.keys(this.muted).forEach(async (mute) => {
+        let member = await guild.members.fetch(mute);
+        if (member) await member.roles.add(role as Role);
       });
     }
   }
