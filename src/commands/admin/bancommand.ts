@@ -20,7 +20,7 @@
  THE SOFTWARE.
  */
 
-import { TextChannel, User } from 'discord.js';
+import { TextChannel, User, GuildMember } from 'discord.js';
 import MessageObject from '../../interface/MessageObject';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
@@ -66,11 +66,47 @@ export async function bancommand(
         if (chan) chan.send(`Error: Cannot ban admin '${target}'`);
         else if (user) user.send(`Error: Cannot ban admin '${target}'`);
       } else {
-        if (args.length < 2) {
+        let days = Number(args[1]) | 0;
+        let r = args[2];
+        if (!r) {
           if (chan) chan.send(`Error: Must include reason`);
           else if (user) user.send(`Error: Must include reason`);
+      } else {
+        if (days < 0) {
+          if (chan) chan.send(`Error: 0 days is the minimum '`);
+          else if (user) user.send(`Error: 0 days is the minimum '`);
+        } else {
+          if (chan instanceof TextChannel) {
+            let member:
+              | GuildMember
+              | undefined = await chan.guild.members.fetch(target);
+            if (member) {
+              let u: User | undefined = await discord.util.parseUser(args[0]);
+              args.shift();
+              args.shift();
+              const x = args.join(' ');
+              member
+                .ban({days: days,reason:x})
+                .then(async () => {
+                  if (chan) await chan.send(`${u} Banned by ${messageObj.author} removed messages from the past ${days} days. Reason ${x}`);
+                  else if (user) await user.send(`${u} Banned by ${messageObj.author} removed messages from the past ${days} days. Reason ${x}`);
+                })
+                .catch(async (e: Error) => {
+                  console.log(JSON.stringify(e));
+                  if (chan)
+                    await chan.send(
+                      `Error: An error occured when attempting to ban '${u}'`
+                    );
+                  else if (user)
+                    await user.send(
+                      `Error: An error occured when attempting to ban '${u}'`
+                      );
+                    });
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
-  }
-}
