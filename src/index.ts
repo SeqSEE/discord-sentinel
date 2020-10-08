@@ -41,7 +41,13 @@ let start = async (disabled: string[], admins: string[]) => {
     admins
   );
   const msgHandler: MessageHandler = new MessageHandler(cmdHandler);
-  const commands = new Commands(discord, cmdHandler, msgHandler);
+  const commands = new Commands(
+    discord,
+    cmdHandler,
+    msgHandler,
+    muteHandler,
+    warnHandler
+  );
   await commands.registerCommands();
   Object.values(disabled).forEach((d) => {
     let cmd = cmdHandler.getCommandsMap().get(`${d as string}`);
