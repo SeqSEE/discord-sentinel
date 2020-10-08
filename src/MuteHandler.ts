@@ -89,8 +89,6 @@ export default class MuteHandler {
       if (role) {
         let member = await guild.members.fetch(id);
         if (member) await member.roles.remove(role as Role);
-      } else {
-        console.log('Role undefined');
       }
       this.save();
     }
