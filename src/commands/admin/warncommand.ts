@@ -48,26 +48,25 @@ export async function warncommand(
   if (args.length < 3) {
     if (chan)
       chan.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <level> <user> <reason>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <user> <level> <reason>`
       );
     else if (user)
       user.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <level> <user> <reason>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <user> <level> <reason>`
       );
   } else {
-    let level = Number(args[0]);
-    let target: User | undefined = await discord.util.parseUser(args[1]);
-
+    let target: User | undefined = await discord.util.parseUser(args[0]);
+    let level = Number(args[1]);
     if (!target) {
-      if (chan) chan.send(`Error: Invalid user ${args[1]}`);
-      else if (user) user.send(`Error: Invalid user ${args[1]}`);
+      if (chan) chan.send(`Error: Invalid user ${args[0]}`);
+      else if (user) user.send(`Error: Invalid user ${args[0]}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot warn SUPER_ADMIN '${args[1]}'`);
-        else if (user) user.send(`Error: Cannot warn SUPER_ADMIN '${args[1]}'`);
+        if (chan) chan.send(`Error: Cannot warn SUPER_ADMIN '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot warn SUPER_ADMIN '${args[0]}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot warn admin '${args[1]}'`);
-        else if (user) user.send(`Error: Cannot warn admin '${args[1]}'`);
+        if (chan) chan.send(`Error: Cannot warn admin '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot warn admin '${args[0]}'`);
       } else {
         args.shift();
         args.shift();

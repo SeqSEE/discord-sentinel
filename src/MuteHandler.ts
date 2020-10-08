@@ -64,6 +64,13 @@ export default class MuteHandler {
     this.checking = false;
   }
 
+  public async unmute(id: string) {
+    if (this.muted.has(id)) {
+      this.muted.delete(id);
+      this.save();
+    }
+  }
+
   public async mute(
     channel: string,
     id: string,
@@ -116,6 +123,18 @@ export default class MuteHandler {
       },
     };
     this.muted.set(id, end);
+    let guild: Guild = ((await this.discord
+      .getClient()
+      .channels.fetch(process.env.DEFAULT_CHAN as string)) as TextChannel)
+      .guild;
+    let role: Role | undefined = guild.roles.cache.find(
+      (role) => role.name === 'sentinel-muted'
+    );
+    if (role) {
+      let member = await guild.members.fetch(id);
+      if (member) await member.roles.add(role as Role);
+    }
+
     let chan = await this.discord.getClient().channels.fetch(channel);
     if (chan instanceof TextChannel) {
       (chan as TextChannel).send(muteEmbed);
