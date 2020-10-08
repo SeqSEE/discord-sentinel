@@ -67,6 +67,17 @@ export default class MuteHandler {
   public async unmute(id: string) {
     if (this.muted.has(id)) {
       this.muted.delete(id);
+      let guild: Guild = ((await this.discord
+        .getClient()
+        .channels.fetch(process.env.DEFAULT_CHAN as string)) as TextChannel)
+        .guild;
+      let role: Role | undefined = guild.roles.cache.find(
+        (role) => role.name === 'sentinel-muted'
+      );
+      if (role) {
+        let member = await guild.members.fetch(id);
+        if (member) await member.roles.add(role as Role);
+      }
       this.save();
     }
   }
