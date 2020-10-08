@@ -35,7 +35,7 @@ export async function help(
   let c = await discord.getClient().channels.fetch(messageObj.channel);
   let chan: TextChannel | null =
     c instanceof TextChannel ? (c as TextChannel) : null;
-  let m = messageObj.content.split(/\s+/);
+  let args = discord.util.parseArgs(messageObj.content);
   let helpEmbed = {
     embed: {
       color: 8359053,
@@ -64,11 +64,11 @@ export async function help(
       },
     },
   };
-  if (m.length < 2) {
+  if (args.length < 1) {
     if (chan) chan.send(helpEmbed);
     else if (user) user.send(helpEmbed);
   } else {
-    const command = m[1];
+    const command = args[0];
     const cmd: Command | undefined = cmdHandler.getCommand(
       `${cmdHandler.getCmdPrefix()}${command}`
     );
