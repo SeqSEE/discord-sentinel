@@ -29,7 +29,7 @@ import MuteHandler from '../../MuteHandler';
 export async function mutecommand(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
-  muteHander: MuteHandler,
+  muteHandler: MuteHandler,
   messageObj: MessageObject
 ): Promise<void> {
   let user = await discord.getClient().users.fetch(messageObj.author);
@@ -67,10 +67,9 @@ export async function mutecommand(
         if (chan) chan.send(`Error: Cannot mute admin '${args[0]}'`);
         else if (user) user.send(`Error: Cannot mute admin '${args[0]}'`);
       } else {
-        //mute the user
         args.shift();
         args.shift();
-        muteHander.mute(
+        await muteHandler.mute(
           (chan as TextChannel).id,
           target.id,
           Number(args[1]),
