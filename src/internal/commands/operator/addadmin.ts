@@ -50,7 +50,7 @@ export async function addadmin(
         `Error: Invalid arguments\nUsage:\n${cmdHandler}addadmin <user>`
       );
   } else {
-    let mention = args[1];
+    let mention = args[0];
     if (mention.match(discord.util.regexMention)) {
       if (mention.startsWith('<@') && mention.endsWith('>')) {
         mention = mention.slice(2, -1);
@@ -62,16 +62,16 @@ export async function addadmin(
     }
     let u: User | undefined = await discord.util.parseUser(mention);
     if (!u) {
-      if (chan) chan.send(`Error: Invalid user ${args[1]}`);
-      else if (user) user.send(`Error: Invalid user ${args[1]}`);
+      if (chan) chan.send(`Error: Invalid user ${mention}`);
+      else if (user) user.send(`Error: Invalid user ${mention}`);
     } else {
       if (u.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot add SUPER_ADMIN '${args[1]}'`);
-        else if (user) user.send(`Error: Cannot add SUPER_ADMIN '${args[1]}'`);
+        if (chan) chan.send(`Error: Cannot add SUPER_ADMIN '${mention}'`);
+        else if (user) user.send(`Error: Cannot add SUPER_ADMIN '${mention}'`);
       } else {
         if (cmdHandler.getAdmins().indexOf(u.id) > -1) {
-          if (chan) chan.send(`Error: '${args[1]}' is already an admin`);
-          else if (user) user.send(`Error: '${args[1]}' is already an admin`);
+          if (chan) chan.send(`Error: '${mention}' is already an admin`);
+          else if (user) user.send(`Error: '${mention}' is already an admin`);
         } else {
           cmdHandler.addAdmin(u.id);
           if (chan) chan.send(`Added <@${u.id}> to admins`);

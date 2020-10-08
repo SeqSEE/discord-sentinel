@@ -24,16 +24,29 @@ import InternalCommands from './internal/InternalCommands';
 import DiscordHandler from './internal/DiscordHandler';
 import CommandHandler from './internal/CommandHandler';
 import MessageHandler from './internal/MessageHandler';
+import MuteHandler from './MuteHandler';
+import WarningHandler from './WarningHandler';
 import MessageObject from './interface/MessageObject';
 import { ping } from './commands/example/ping';
+import { mute } from './commands/admin/mute';
+import { unmute } from './commands/admin/unmute';
+import { kick } from './commands/admin/kick';
+import { warn } from './commands/admin/warn';
+import { pardon } from './commands/admin/pardon';
 
 export default class Commands extends InternalCommands {
+  private muteHandler: MuteHandler;
+  private warnHandler: WarningHandler;
   constructor(
     discord: DiscordHandler,
     cmdHandler: CommandHandler,
-    msgHandler: MessageHandler
+    msgHandler: MessageHandler,
+    muteHandler: MuteHandler,
+    warnHandler: WarningHandler
   ) {
     super(discord, cmdHandler, msgHandler);
+    this.muteHandler = muteHandler;
+    this.warnHandler = warnHandler;
   }
   public async registerCommands(): Promise<void> {
     await super.registerCommands(); //register the internal commands first
@@ -45,6 +58,76 @@ export default class Commands extends InternalCommands {
         if (Number(process.env.DEBUG) === 1)
           console.log(`${Date()} author: ${messageObj.author} command: ping`);
         return ping(this.getDiscord(), messageObj);
+      }
+    );
+    this.registerCommand(
+      'mute',
+      'mute <user> <length> <reason>',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: mute`);
+        return mute(
+          this.getDiscord(),
+          this.getCommandHandler(),
+          this.muteHandler,
+          messageObj
+        );
+      }
+    );
+    this.registerCommand(
+      'unmute',
+      'unmute <user>',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: unmute`);
+        return unmute(
+          this.getDiscord(),
+          this.getCommandHandler(),
+          this.muteHandler,
+          messageObj
+        );
+      }
+    );
+    this.registerCommand(
+      'kick',
+      'kick <user> <reason>',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: kick`);
+        return kick(this.getDiscord(), this.getCommandHandler(), messageObj);
+      }
+    );
+    this.registerCommand(
+      'warn',
+      'warn <user> <level> <reason>',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: warn`);
+        return warn(
+          this.getDiscord(),
+          this.getCommandHandler(),
+          this.warnHandler,
+          messageObj
+        );
+      }
+    );
+    this.registerCommand(
+      'pardon',
+      'pardon <user> <level>',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: pardon`);
+        return pardon(
+          this.getDiscord(),
+          this.getCommandHandler(),
+          this.warnHandler,
+          messageObj
+        );
       }
     );
   }

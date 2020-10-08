@@ -20,21 +20,26 @@
  THE SOFTWARE.
  */
 
-import DiscordHandler from '../../DiscordHandler';
-import MessageObject from '../../../interface/MessageObject';
 import { TextChannel, User } from 'discord.js';
-import CommandHandler from '../../CommandHandler';
+import MessageObject from '../../interface/MessageObject';
+import CommandHandler from '../../internal/CommandHandler';
+import DiscordHandler from '../../internal/DiscordHandler';
+import MuteHandler from '../../MuteHandler';
 
-export async function removeadmin(
+export async function unmute(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
+  muteHandler: MuteHandler,
   messageObj: MessageObject
 ): Promise<void> {
   let user = await discord.getClient().users.fetch(messageObj.author);
   let c = await discord.getClient().channels.fetch(messageObj.channel);
   let chan: TextChannel | null =
     c instanceof TextChannel ? (c as TextChannel) : null;
-  if (messageObj.author !== process.env.SUPER_ADMIN) {
+  if (
+    messageObj.author !== process.env.SUPER_ADMIN &&
+    !cmdHandler.isAdmin(messageObj.author)
+  ) {
     if (chan) chan.send('Error: Permission Denied');
     else if (user) user.send('Error: Permission Denied');
     return;
@@ -43,40 +48,29 @@ export async function removeadmin(
   if (args.length < 1) {
     if (chan)
       chan.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}removeadmin <user>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}unmute <user>`
       );
     else if (user)
       user.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler}removeadmin <user>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}unmute <user>`
       );
   } else {
-    let mention = args[0];
-    if (mention.match(discord.util.regexMention)) {
-      if (mention.startsWith('<@') && mention.endsWith('>')) {
-        mention = mention.slice(2, -1);
-
-        if (mention.startsWith('!')) {
-          mention = mention.slice(1);
-        }
-      }
-    }
-    let u: User | undefined = await discord.util.parseUser(mention);
-    if (!u) {
-      if (chan) chan.send(`Error: Invalid user ${mention}`);
-      else if (user) user.send(`Error: Invalid user ${mention}`);
+    let target: User | undefined = await discord.util.parseUser(args[0]);
+    if (!target) {
+      if (chan) chan.send(`Error: Invalid user ${args[0]}`);
+      else if (user) user.send(`Error: Invalid user ${args[0]}`);
     } else {
-      if (u.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot remove SUPER_ADMIN '${mention}'`);
-        else if (user) user.send(`Error: Cannot remove SUPER_ADMIN '${mention}'`);
+      if (target.id === process.env.SUPER_ADMIN) {
+        if (chan) chan.send(`Error: Cannot unmute SUPER_ADMIN '${args[0]}'`);
+        else if (user)
+          user.send(`Error: Cannot unmute SUPER_ADMIN '${args[0]}'`);
+      } else if (cmdHandler.isAdmin(target.id)) {
+        if (chan) chan.send(`Error: Cannot unmute admin '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot unmute admin '${args[0]}'`);
       } else {
-        if (cmdHandler.getAdmins().indexOf(u.id) < 0) {
-          if (chan) chan.send(`Error: '${mention}' is not an admin`);
-          else if (user) user.send(`Error: '${mention}' is not an admin`);
-        } else {
-          cmdHandler.removeAdmin(u.id);
-          if (chan) chan.send(`Removed <@${u.id}> from admins`);
-          else if (user) user.send(`Removed <@${u.id}> from admins`);
-        }
+        await muteHandler.unmute(target.id);
+        if (chan) chan.send(`Unmuted '${args[0]}'`);
+        else if (user) user.send(`Unmuted '${args[0]}'`);
       }
     }
   }
