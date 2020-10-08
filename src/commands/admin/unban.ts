@@ -25,7 +25,7 @@ import MessageObject from '../../interface/MessageObject';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
 
-export async function unbancommand(
+export async function unban(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
   messageObj: MessageObject

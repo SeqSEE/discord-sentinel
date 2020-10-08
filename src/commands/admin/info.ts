@@ -33,7 +33,7 @@ import UserInfo from '../../interface/UserInfo';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
 
-export async function infocommand(
+export async function info(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
   messageObj: MessageObject

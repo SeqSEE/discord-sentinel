@@ -33,6 +33,9 @@ import { unmute } from './commands/admin/unmute';
 import { kick } from './commands/admin/kick';
 import { warn } from './commands/admin/warn';
 import { pardon } from './commands/admin/pardon';
+import { info } from './commands/admin/info';
+import { ban } from './commands/admin/ban';
+import { unban } from './commands/admin/unban';
 
 export default class Commands extends InternalCommands {
   private muteHandler: MuteHandler;
@@ -58,6 +61,16 @@ export default class Commands extends InternalCommands {
         if (Number(process.env.DEBUG) === 1)
           console.log(`${Date()} author: ${messageObj.author} command: ping`);
         return ping(this.getDiscord(), messageObj);
+      }
+    );
+    this.registerCommand(
+      'info',
+      'info <user>',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: info`);
+        return info(this.getDiscord(), this.getCommandHandler(), messageObj);
       }
     );
     this.registerCommand(
@@ -128,6 +141,26 @@ export default class Commands extends InternalCommands {
           this.warnHandler,
           messageObj
         );
+      }
+    );
+    this.registerCommand(
+      'ban',
+      'ban <user> <history> <reason>',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: ban`);
+        return ban(this.getDiscord(), this.getCommandHandler(), messageObj);
+      }
+    );
+    this.registerCommand(
+      'unban',
+      'unban <user>',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: unban`);
+        return unban(this.getDiscord(), this.getCommandHandler(), messageObj);
       }
     );
   }
