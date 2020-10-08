@@ -25,16 +25,18 @@ import path from 'path';
 import { Channel, Guild, GuildChannel, Role, TextChannel } from 'discord.js';
 import DiscordHandler from './internal/DiscordHandler';
 
-const mutedFile = '../../data/muted.json';
+const mutedFile = '../data/muted.json';
 
 export default class MuteHandler {
   private discord: DiscordHandler;
-  private muted: Map<string, number>;
+  private muted: string[];
+  private mutedMap: Map<string, number>;
   private checking: boolean;
   private mutedLoop: NodeJS.Timeout | null;
   constructor(discord: DiscordHandler) {
     this.discord = discord;
-    this.muted = new Map<string, number>();
+    this.muted = [];
+    this.mutedMap = new Map<string, number>();
     this.checking = false;
     this.mutedLoop = null;
     this.load();
@@ -43,10 +45,9 @@ export default class MuteHandler {
   private async check() {
     if (this.checking) return;
     this.checking = true;
-    Object.keys(this.muted).forEach(async (mute) => {
-      let end = Number(this.muted.get(mute));
+    for (let x = 0; x < this.muted.length; x++) {
+      let end = Number(this.mutedMap.get(this.muted[x]));
       if (Math.floor(Date.now() / 1000) - end > 0) {
-        this.muted.delete(mute);
         let guild: Guild = ((await this.discord
           .getClient()
           .channels.fetch(process.env.DEFAULT_CHAN as string)) as TextChannel)
@@ -55,18 +56,23 @@ export default class MuteHandler {
           (role) => role.name === 'sentinel-muted'
         );
         if (role) {
-          let member = await guild.members.fetch(mute);
+          let member = await guild.members.fetch(this.muted[x]);
           if (member) await member.roles.remove(role as Role);
+          this.mutedMap.delete(this.muted[x]);
+          delete this.muted[x];
         }
       }
-    });
+    }
     this.save();
     this.checking = false;
   }
 
   public async unmute(id: string) {
-    if (this.muted.has(id)) {
-      this.muted.delete(id);
+    if (this.mutedMap.has(id)) {
+      this.mutedMap.delete(id);
+      for (let x = 0; x < this.muted.length; x++) {
+        if (this.muted[x] === id) delete this.muted[x];
+      }
       let guild: Guild = ((await this.discord
         .getClient()
         .channels.fetch(process.env.DEFAULT_CHAN as string)) as TextChannel)
@@ -88,7 +94,7 @@ export default class MuteHandler {
     length: number,
     reason: string
   ) {
-    let end = Math.floor(Date.now() / 1000) + length;
+    let end = Math.floor(Date.now() / 1000) + length * 60000;
     let date = new Date(end * 1000);
     let hours = date.getHours();
     let minutes = '0' + date.getMinutes();
@@ -133,7 +139,8 @@ export default class MuteHandler {
         },
       },
     };
-    this.muted.set(id, end);
+    this.mutedMap.set(id, end);
+    if (this.muted.indexOf(id) === -1) this.muted.push(id);
     let guild: Guild = ((await this.discord
       .getClient()
       .channels.fetch(process.env.DEFAULT_CHAN as string)) as TextChannel)
@@ -150,7 +157,7 @@ export default class MuteHandler {
     if (chan instanceof TextChannel) {
       (chan as TextChannel).send(muteEmbed);
     }
-    this.save();
+    return this.save();
   }
   private load() {
     if (fs.existsSync(mutedFile)) {
@@ -158,7 +165,8 @@ export default class MuteHandler {
         fs.readFileSync(mutedFile).toString('utf8')
       );
       m.forEach((mute) => {
-        this.muted.set(mute.id, mute.end);
+        this.mutedMap.set(mute.id, mute.end);
+        if (this.muted.indexOf(mute.id) === -1) this.muted.push(mute.id);
       });
     }
     this.mutedLoop = setInterval(() => {
@@ -168,10 +176,11 @@ export default class MuteHandler {
 
   public save(): void {
     let m: { id: string; end: number }[] = [];
-    Object.keys(this.muted).forEach((id) => {
-      let end = Number(this.muted.get(id));
-      if (Math.floor(Date.now() / 1000) - end < 0) m.push({ id, end });
-    });
+    for (let x = 0; x < this.muted.length; x++) {
+      let end = Number(this.mutedMap.get(this.muted[x]));
+      if (Math.floor(Date.now() / 1000) - end < 0)
+        m.push({ id: this.muted[x], end });
+    }
     fs.writeFile(
       path.join(__dirname, mutedFile),
       JSON.stringify(m, null, 2),
@@ -188,13 +197,18 @@ export default class MuteHandler {
       .getClient()
       .channels.fetch(process.env.DEFAULT_CHAN as string)) as TextChannel)
       .guild;
+
     let role: Role | undefined = guild.roles.cache.find(
       (role) => role.name === 'sentinel-muted'
     );
     if (role) {
       guild.channels.cache.forEach(async (channel: Channel) => {
         if (channel instanceof GuildChannel) {
-          channel.updateOverwrite(role as Role, { SEND_MESSAGES: false });
+          channel.updateOverwrite(role as Role, {
+            SEND_MESSAGES: false,
+            MANAGE_EMOJIS: false,
+            ADD_REACTIONS: false,
+          });
         }
       });
     } else {
@@ -207,15 +221,22 @@ export default class MuteHandler {
       });
       guild.channels.cache.forEach(async (channel: Channel) => {
         if (channel instanceof GuildChannel) {
-          channel.updateOverwrite(role as Role, { SEND_MESSAGES: false });
+          channel.updateOverwrite(role as Role, {
+            SEND_MESSAGES: false,
+            MANAGE_EMOJIS: false,
+            ADD_REACTIONS: false,
+          });
         }
       });
     }
     if (role) {
-      Object.keys(this.muted).forEach(async (mute) => {
-        let member = await guild.members.fetch(mute);
-        if (member) await member.roles.add(role as Role);
+      guild.members.cache.forEach((member) => {
+        member.roles.remove(role as Role);
       });
+      for (let x = 0; x < this.muted.length; x++) {
+        let member = await guild.members.fetch(this.muted[x]);
+        if (member) await member.roles.add(role as Role);
+      }
     }
   }
 }

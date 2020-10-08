@@ -67,12 +67,13 @@ export async function mute(
         if (chan) chan.send(`Error: Cannot mute admin '${args[0]}'`);
         else if (user) user.send(`Error: Cannot mute admin '${args[0]}'`);
       } else {
+        let time = Number(args[1]);
         args.shift();
         args.shift();
         await muteHandler.mute(
           (chan as TextChannel).id,
           target.id,
-          Number(args[1]),
+          time,
           args.join(' ')
         );
       }
