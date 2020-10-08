@@ -1,4 +1,3 @@
-import { TextChannel } from 'discord.js';
 /*
  * Copyright 2020 Cryptech Services
  *
@@ -23,6 +22,7 @@ import { TextChannel } from 'discord.js';
 
 import fs from 'fs';
 import path from 'path';
+import { TextChannel } from 'discord.js';
 import DiscordHandler from './internal/DiscordHandler';
 
 const mutedFile = '../../data/muted.json';
@@ -32,7 +32,6 @@ export default class MuteHandler {
   private muted: Map<string, number>;
   private checking: boolean;
   private mutedLoop: NodeJS.Timeout | null;
-
   constructor(discord: DiscordHandler) {
     this.discord = discord;
     this.muted = new Map<string, number>();
