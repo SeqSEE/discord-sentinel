@@ -26,7 +26,7 @@ import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
 import WarningHandler from '../../WarningHandler';
 
-export async function warncommand(
+export async function pardon(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
   warnHandler: WarningHandler,
@@ -48,11 +48,11 @@ export async function warncommand(
   if (args.length < 3) {
     if (chan)
       chan.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <user> <level> <reason>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}pardon <user> <level>`
       );
     else if (user)
       user.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <user> <level> <reason>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}pardon <user> <level>`
       );
   } else {
     let target: User | undefined = await discord.util.parseUser(args[0]);
@@ -62,16 +62,17 @@ export async function warncommand(
       else if (user) user.send(`Error: Invalid user ${args[0]}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot warn SUPER_ADMIN '${args[0]}'`);
-        else if (user) user.send(`Error: Cannot warn SUPER_ADMIN '${args[0]}'`);
+        if (chan) chan.send(`Error: Cannot pardon SUPER_ADMIN '${args[0]}'`);
+        else if (user)
+          user.send(`Error: Cannot pardon SUPER_ADMIN '${args[0]}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot warn admin '${args[0]}'`);
-        else if (user) user.send(`Error: Cannot warn admin '${args[0]}'`);
+        if (chan) chan.send(`Error: Cannot pardon admin '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot pardon admin '${args[0]}'`);
       } else {
-        args.shift();
-        args.shift();
-        let reason = args.join(' ');
-        await warnHandler.warn(messageObj.channel, target.id, level, reason);
+        warnHandler.pardon(target.id, level);
+        if (chan) chan.send(`Lowered ${args[0]}'s warning level by ${level}`);
+        else if (user)
+          user.send(`Lowered ${args[0]}'s warning level by ${level}`);
       }
     }
   }

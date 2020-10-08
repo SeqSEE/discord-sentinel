@@ -26,7 +26,7 @@ import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
 import MuteHandler from '../../MuteHandler';
 
-export async function mutecommand(
+export async function unmute(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
   muteHandler: MuteHandler,
@@ -45,14 +45,14 @@ export async function mutecommand(
     return;
   }
   let args = discord.util.parseArgs(messageObj.content);
-  if (args.length < 2) {
+  if (args.length < 1) {
     if (chan)
       chan.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}mute <user> <length> <reason>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}unmute <user>`
       );
     else if (user)
       user.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}mute <user> <length> <reason>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}unmute <user>`
       );
   } else {
     let target: User | undefined = await discord.util.parseUser(args[0]);
@@ -61,20 +61,16 @@ export async function mutecommand(
       else if (user) user.send(`Error: Invalid user ${args[0]}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot mute SUPER_ADMIN '${args[0]}'`);
-        else if (user) user.send(`Error: Cannot mute SUPER_ADMIN '${args[0]}'`);
+        if (chan) chan.send(`Error: Cannot unmute SUPER_ADMIN '${args[0]}'`);
+        else if (user)
+          user.send(`Error: Cannot unmute SUPER_ADMIN '${args[0]}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot mute admin '${args[0]}'`);
-        else if (user) user.send(`Error: Cannot mute admin '${args[0]}'`);
+        if (chan) chan.send(`Error: Cannot unmute admin '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot unmute admin '${args[0]}'`);
       } else {
-        args.shift();
-        args.shift();
-        await muteHandler.mute(
-          (chan as TextChannel).id,
-          target.id,
-          Number(args[1]),
-          args.join(' ')
-        );
+        await muteHandler.unmute(target.id);
+        if (chan) chan.send(`Unmuted '${args[0]}'`);
+        else if (user) user.send(`Unmuted '${args[0]}'`);
       }
     }
   }

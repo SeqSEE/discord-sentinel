@@ -24,12 +24,12 @@ import { TextChannel, User } from 'discord.js';
 import MessageObject from '../../interface/MessageObject';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
-import MuteHandler from '../../MuteHandler';
+import WarningHandler from '../../WarningHandler';
 
-export async function unmutecommand(
+export async function warn(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
-  muteHandler: MuteHandler,
+  warnHandler: WarningHandler,
   messageObj: MessageObject
 ): Promise<void> {
   let user = await discord.getClient().users.fetch(messageObj.author);
@@ -45,32 +45,33 @@ export async function unmutecommand(
     return;
   }
   let args = discord.util.parseArgs(messageObj.content);
-  if (args.length < 1) {
+  if (args.length < 3) {
     if (chan)
       chan.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}unmute <user>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <user> <level> <reason>`
       );
     else if (user)
       user.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}unmute <user>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}warn <user> <level> <reason>`
       );
   } else {
     let target: User | undefined = await discord.util.parseUser(args[0]);
+    let level = Number(args[1]);
     if (!target) {
       if (chan) chan.send(`Error: Invalid user ${args[0]}`);
       else if (user) user.send(`Error: Invalid user ${args[0]}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot unmute SUPER_ADMIN '${args[0]}'`);
-        else if (user)
-          user.send(`Error: Cannot unmute SUPER_ADMIN '${args[0]}'`);
+        if (chan) chan.send(`Error: Cannot warn SUPER_ADMIN '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot warn SUPER_ADMIN '${args[0]}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot unmute admin '${args[0]}'`);
-        else if (user) user.send(`Error: Cannot unmute admin '${args[0]}'`);
+        if (chan) chan.send(`Error: Cannot warn admin '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot warn admin '${args[0]}'`);
       } else {
-        await muteHandler.unmute(target.id);
-        if (chan) chan.send(`Unmuted '${args[0]}'`);
-        else if (user) user.send(`Unmuted '${args[0]}'`);
+        args.shift();
+        args.shift();
+        let reason = args.join(' ');
+        await warnHandler.warn(messageObj.channel, target.id, level, reason);
       }
     }
   }

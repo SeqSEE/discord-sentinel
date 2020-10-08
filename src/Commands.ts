@@ -26,6 +26,7 @@ import CommandHandler from './internal/CommandHandler';
 import MessageHandler from './internal/MessageHandler';
 import MessageObject from './interface/MessageObject';
 import { ping } from './commands/example/ping';
+import { mute } from './commands/admin/mutecommand';
 
 export default class Commands extends InternalCommands {
   constructor(
@@ -37,6 +38,36 @@ export default class Commands extends InternalCommands {
   }
   public async registerCommands(): Promise<void> {
     await super.registerCommands(); //register the internal commands first
+    this.registerCommand(
+      'ping',
+      'ping',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: ping`);
+        return ping(this.getDiscord(), messageObj);
+      }
+    );
+    this.registerCommand(
+      'mute',
+      'mute <user> <length> <reason>',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: mute`);
+        return mute(this.getDiscord(), messageObj);
+      }
+    );
+    this.registerCommand(
+      'ping',
+      'ping',
+      [],
+      async (messageObj: MessageObject) => {
+        if (Number(process.env.DEBUG) === 1)
+          console.log(`${Date()} author: ${messageObj.author} command: ping`);
+        return ping(this.getDiscord(), messageObj);
+      }
+    );
     this.registerCommand(
       'ping',
       'ping',
