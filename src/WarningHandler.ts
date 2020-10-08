@@ -58,6 +58,17 @@ export default class WarningHandler {
     this.checking = false;
   }
 
+  public pardon(id: string, level: number) {
+    if (this.warnings.has(id)) {
+      let n =
+        Number(this.warnings.get(id)) - level > 0
+          ? Number(this.warnings.get(id)) - level
+          : 0;
+      this.warnings.set(id, n);
+      this.save();
+    }
+  }
+
   public async warn(
     channel: string,
     id: string,
