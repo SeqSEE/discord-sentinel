@@ -45,7 +45,7 @@ export async function pardon(
     return;
   }
   let args = discord.util.parseArgs(messageObj.content);
-  if (args.length < 3) {
+  if (args.length < 2) {
     if (chan)
       chan.send(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}pardon <user> <level>`

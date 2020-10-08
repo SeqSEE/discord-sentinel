@@ -26,17 +26,19 @@ import { TextChannel } from 'discord.js';
 import DiscordHandler from './internal/DiscordHandler';
 import MuteHandler from './MuteHandler';
 
-const warningsFile = '../../data/warnings.json';
+const warningsFile = '../data/warnings.json';
 
 export default class WarningHandler {
   private discord: DiscordHandler;
   private muteHandler: MuteHandler;
+  private warned: string[];
   private warnings: Map<string, number>;
   private checking: boolean;
   private warningLoop: NodeJS.Timeout | null;
   constructor(discord: DiscordHandler, muteHandler: MuteHandler) {
     this.discord = discord;
     this.muteHandler = muteHandler;
+    this.warned = [];
     this.warnings = new Map<string, number>();
     this.checking = false;
     this.warningLoop = null;
@@ -46,14 +48,15 @@ export default class WarningHandler {
   private check() {
     if (this.checking) return;
     this.checking = true;
-    Object.keys(this.warnings).forEach((warning) => {
-      let level = Number(this.warnings.get(warning));
+    for (let x = 0; x < this.warned.length; x++) {
+      let level = Number(this.warnings.get(this.warned[x]));
       if (level - 1 > 1) {
-        this.warnings.delete(warning);
+        this.warnings.delete(this.warned[x]);
       } else {
-        this.warnings.set(warning, level - 1);
+        this.warnings.set(this.warned[x], level - 1);
       }
-    });
+    }
+
     this.save();
     this.checking = false;
   }
@@ -75,10 +78,9 @@ export default class WarningHandler {
     level: number,
     reason: string
   ): Promise<void> {
-    let lvl: number =
-      this.warnings.get(id) === undefined
-        ? 0
-        : Number(this.warnings.get(id)) + level;
+    let lvl: number = !this.warnings.has(id)
+      ? 0
+      : Number(this.warnings.get(id)) + level;
     let warnEmbed = {
       embed: {
         color: 8359053,
@@ -117,9 +119,9 @@ export default class WarningHandler {
       },
     };
     this.warnings.set(id, lvl);
-    this.save();
+    if (this.warned.indexOf(id) === -1) this.warned.push(id);
     if (lvl >= Number(process.env.MAX_WARN)) {
-      this.muteHandler.mute(
+      await this.muteHandler.mute(
         channel,
         id,
         3600,
@@ -130,6 +132,7 @@ export default class WarningHandler {
     if (chan instanceof TextChannel) {
       (chan as TextChannel).send(warnEmbed);
     }
+    this.save();
   }
 
   private load() {
@@ -139,6 +142,15 @@ export default class WarningHandler {
       );
       w.forEach((warn) => {
         this.warnings.set(warn.id, warn.level);
+        this.warned.push(warn.id);
+        if (warn.level >= Number(process.env.MAX_WARN)) {
+          this.muteHandler.mute(
+            process.env.DEFAULT_CHAN as string,
+            warn.id,
+            3600,
+            'Exceeded maximum warning level'
+          );
+        }
       });
     }
     this.warningLoop = setInterval(() => {
@@ -148,10 +160,11 @@ export default class WarningHandler {
 
   public save(): void {
     let w: { id: string; level: number }[] = [];
-    Object.keys(this.warnings).forEach((id) => {
-      let level = Number(this.warnings.get(id));
-      if (level > 0) w.push({ id, level });
-    });
+    for (let x = 0; x < this.warned.length; x++) {
+      let level = Number(this.warnings.get(this.warned[x]));
+      if (level > 0) w.push({ id: this.warned[x], level });
+    }
+
     fs.writeFile(
       path.join(__dirname, warningsFile),
       JSON.stringify(w, null, 2),
