@@ -70,7 +70,7 @@ export async function removeadmin(
         else if (user) user.send(`Error: Cannot remove SUPER_ADMIN '${mention}'`);
       } else {
         if (cmdHandler.getAdmins().indexOf(u.id) < 0) {
-          if (chan) chan.send(`Error: '${mention' is not an admin`);
+          if (chan) chan.send(`Error: '${mention}' is not an admin`);
           else if (user) user.send(`Error: '${mention}' is not an admin`);
         } else {
           cmdHandler.removeAdmin(u.id);

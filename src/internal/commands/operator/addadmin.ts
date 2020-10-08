@@ -67,7 +67,7 @@ export async function addadmin(
     } else {
       if (u.id === process.env.SUPER_ADMIN) {
         if (chan) chan.send(`Error: Cannot add SUPER_ADMIN '${mention}'`);
-        else if (user) user.send(`Error: Cannot add SUPER_ADMIN '${mention]}'`);
+        else if (user) user.send(`Error: Cannot add SUPER_ADMIN '${mention}'`);
       } else {
         if (cmdHandler.getAdmins().indexOf(u.id) > -1) {
           if (chan) chan.send(`Error: '${mention}' is already an admin`);
