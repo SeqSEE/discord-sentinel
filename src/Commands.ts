@@ -70,7 +70,13 @@ export default class Commands extends InternalCommands {
       async (messageObj: MessageObject) => {
         if (Number(process.env.DEBUG) === 1)
           console.log(`${Date()} author: ${messageObj.author} command: info`);
-        return info(this.getDiscord(), this.getCommandHandler(), messageObj);
+        return info(
+          this.getDiscord(),
+          this.getCommandHandler(),
+          this.warnHandler,
+          this.muteHandler,
+          messageObj
+        );
       }
     );
     this.registerCommand(

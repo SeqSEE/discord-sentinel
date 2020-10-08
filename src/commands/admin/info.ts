@@ -32,10 +32,14 @@ import MessageObject from '../../interface/MessageObject';
 import UserInfo from '../../interface/UserInfo';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
+import MuteHandler from '../../MuteHandler';
+import WarningHandler from '../../WarningHandler';
 
 export async function info(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
+  warnHandler: WarningHandler,
+  muteHandler: MuteHandler,
   messageObj: MessageObject
 ): Promise<void> {
   let user = await discord.getClient().users.fetch(messageObj.author);
@@ -156,12 +160,16 @@ export async function info(
               },
               {
                 name: 'Warning Level',
-                value: '0/10',
+                value: `${warnHandler.getLevel(target.id)}/${Number(
+                  process.env.MAX_WARN
+                )}`,
                 inline: true,
               },
               {
                 name: 'Mute',
-                value: 'Not Muted',
+                value: `${
+                  muteHandler.mutedUntil(target.id) > 0 ? 'Muted' : 'Not Muted'
+                }`,
                 inline: true,
               },
               {

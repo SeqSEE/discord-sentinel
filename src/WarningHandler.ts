@@ -72,6 +72,12 @@ export default class WarningHandler {
     }
   }
 
+  public getLevel(id: string) {
+    return this.warned.indexOf(id) === -1
+      ? 0
+      : Number(this.warnings.get(id)) | 0;
+  }
+
   public async warn(
     channel: string,
     id: string,

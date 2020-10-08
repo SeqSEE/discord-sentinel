@@ -67,6 +67,12 @@ export default class MuteHandler {
     this.checking = false;
   }
 
+  public mutedUntil(id: string) {
+    return this.muted.indexOf(id) === -1
+      ? 0
+      : Number(this.mutedMap.get(id)) | 0;
+  }
+
   public async unmute(id: string) {
     if (this.mutedMap.has(id)) {
       this.mutedMap.delete(id);
@@ -82,7 +88,9 @@ export default class MuteHandler {
       );
       if (role) {
         let member = await guild.members.fetch(id);
-        if (member) await member.roles.add(role as Role);
+        if (member) await member.roles.remove(role as Role);
+      } else {
+        console.log('Role undefined');
       }
       this.save();
     }
