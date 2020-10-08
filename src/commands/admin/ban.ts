@@ -53,22 +53,25 @@ export async function ban(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}ban <user> <history> <reason>`
       );
   } else {
-    let target: User | undefined = await discord.util.parseUser(args[0]);
-    args.shift();
+    let uname = args[0];
+    let target: User | undefined = await discord.util.parseUser(uname);
+
     if (!target) {
-      if (chan) chan.send(`Error: Invalid user ${target}`);
-      else if (user) user.send(`Error: Invalid user ${target}`);
+      if (chan) chan.send(`Error: Invalid user ${uname}`);
+      else if (user) user.send(`Error: Invalid user ${uname}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot ban SUPER_ADMIN '${target}'`);
-        else if (user) user.send(`Error: Cannot ban SUPER_ADMIN '${target}'`);
+        if (chan) chan.send(`Error: Cannot ban SUPER_ADMIN '${uname}'`);
+        else if (user) user.send(`Error: Cannot ban SUPER_ADMIN '${uname}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot ban admin '${target}'`);
-        else if (user) user.send(`Error: Cannot ban admin '${target}'`);
+        if (chan) chan.send(`Error: Cannot ban admin '${uname}'`);
+        else if (user) user.send(`Error: Cannot ban admin '${uname}'`);
       } else {
         let days = Number(args[1]) | 0;
-        let r = args[2];
-        if (!r) {
+        args.shift();
+        args.shift();
+        let reason = args.join(' ');
+        if (!reason) {
           if (chan) chan.send(`Error: Must include reason`);
           else if (user) user.send(`Error: Must include reason`);
         } else {
@@ -81,20 +84,17 @@ export async function ban(
                 | GuildMember
                 | undefined = await chan.guild.members.fetch(target);
               if (member) {
-                let u: User | undefined = await discord.util.parseUser(args[0]);
-                args.shift();
-                args.shift();
-                const x = args.join(' ');
+                let u: User | undefined = await discord.util.parseUser(uname);
                 member
-                  .ban({ days: days, reason: x })
+                  .ban({ days: days, reason })
                   .then(async () => {
                     if (chan)
                       await chan.send(
-                        `${u} Banned by ${messageObj.author} removed messages from the past ${days} days. Reason ${x}`
+                        `${u} Banned by ${messageObj.author} removed messages from the past ${days} days. Reason ${reason}`
                       );
                     else if (user)
                       await user.send(
-                        `${u} Banned by ${messageObj.author} removed messages from the past ${days} days. Reason ${x}`
+                        `${u} Banned by ${messageObj.author} removed messages from the past ${days} days. Reason ${reason}`
                       );
                   })
                   .catch(async (e: Error) => {
