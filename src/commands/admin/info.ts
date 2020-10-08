@@ -69,15 +69,15 @@ export async function info(
       if (chan instanceof TextChannel) {
         let bans = await (chan as TextChannel).guild.fetchBans();
         let ban: { user: User; reason: string } | undefined = bans
-          .filter((b) => b.user.id === user!.id)
+          .filter((b) => b.user.id === target!.id)
           .first();
-        let status: PresenceStatus = user.presence.status;
+        let status: PresenceStatus = target.presence.status;
         let g: GuildMember = await (chan as TextChannel).guild.members.fetch(
-          user
+          target
         );
         let joined: Date = (g.joinedAt as Date) || new Date();
-        let createdAt: Date = user.createdAt;
-        let display = `${user.username}#${user.discriminator}`;
+        let createdAt: Date = target.createdAt;
+        let display = `${target.username}#${target.discriminator}`;
         let nick = g.nickname || '';
         let mainRole: Role = g.roles.highest;
         let t: Collection<string, Role> = g.roles.cache;
@@ -88,7 +88,7 @@ export async function info(
         let i: UserInfo;
         if (!ban)
           i = {
-            admin: cmdHandler.isAdmin(user.id),
+            admin: cmdHandler.isAdmin(target.id),
             status,
             joined: joined.toString(),
             createdAt: createdAt.toString(),
@@ -100,7 +100,7 @@ export async function info(
           };
         else
           i = {
-            admin: cmdHandler.isAdmin(user.id),
+            admin: cmdHandler.isAdmin(target.id),
             status,
             joined: joined.toString(),
             createdAt: createdAt.toString(),

@@ -204,11 +204,43 @@ export default class MuteHandler {
     if (role) {
       guild.channels.cache.forEach(async (channel: Channel) => {
         if (channel instanceof GuildChannel) {
-          channel.updateOverwrite(role as Role, {
-            SEND_MESSAGES: false,
-            MANAGE_EMOJIS: false,
-            ADD_REACTIONS: false,
-          });
+          let member = channel.guild.members.cache.find(
+            (member) => member.id === this.discord.getClient().user?.id
+          );
+          let sentinel: Role | undefined = guild.roles.cache.find(
+            (role) => role.id === member?.roles.highest.id
+          );
+          channel
+            .updateOverwrite(sentinel as Role, {
+              SEND_MESSAGES: true,
+              READ_MESSAGE_HISTORY: true,
+              MANAGE_MESSAGES: true,
+              MANAGE_ROLES: true,
+              ADD_REACTIONS: true,
+            })
+            .then(() => {
+              console.log(
+                `Updated Sentinel's role for ${channel.name} - ${channel.id}`
+              );
+              channel
+                .updateOverwrite(role as Role, {
+                  SEND_MESSAGES: false,
+                  ADD_REACTIONS: false,
+                })
+                .then(() => {
+                  console.log(`Updated ${channel.name} - ${channel.id}`);
+                })
+                .catch((e) => {
+                  console.log(
+                    `Error while updating ${channel.name} - ${channel.id}`
+                  );
+                });
+            })
+            .catch((e) => {
+              console.log(
+                `Error while updating Sentinel's role for ${channel.name} - ${channel.id}`
+              );
+            });
         }
       });
     } else {
@@ -221,21 +253,72 @@ export default class MuteHandler {
       });
       guild.channels.cache.forEach(async (channel: Channel) => {
         if (channel instanceof GuildChannel) {
-          channel.updateOverwrite(role as Role, {
-            SEND_MESSAGES: false,
-            MANAGE_EMOJIS: false,
-            ADD_REACTIONS: false,
-          });
+          let member = channel.guild.members.cache.find(
+            (member) => member.id === this.discord.getClient().user?.id
+          );
+          let sentinel: Role | undefined = guild.roles.cache.find(
+            (role) => role.id === member?.roles.highest.id
+          );
+          channel
+            .updateOverwrite(sentinel as Role, {
+              SEND_MESSAGES: true,
+              READ_MESSAGE_HISTORY: true,
+              MANAGE_MESSAGES: true,
+              MANAGE_ROLES: true,
+              ADD_REACTIONS: true,
+            })
+            .then(() => {
+              console.log(
+                `Updated Sentinel's role for ${channel.name} - ${channel.id}`
+              );
+              channel
+                .updateOverwrite(role as Role, {
+                  SEND_MESSAGES: false,
+                  ADD_REACTIONS: false,
+                })
+                .then(() => {
+                  console.log(`Updated ${channel.name} - ${channel.id}`);
+                })
+                .catch((e) => {
+                  console.log(
+                    `Error while updating ${channel.name} - ${channel.id}`
+                  );
+                });
+            })
+            .catch((e) => {
+              console.log(
+                `Error while updating Sentinel's role for ${channel.name} - ${channel.id}`
+              );
+            });
         }
       });
     }
     if (role) {
       guild.members.cache.forEach((member) => {
-        member.roles.remove(role as Role);
+        member.roles
+          .remove(role as Role)
+          .then(() => {
+            console.log(`Removed ${role?.name} from ${member.displayName}`);
+          })
+          .catch((e) => {
+            console.log(
+              `Error while removing ${role?.name} from ${member.displayName}`
+            );
+          });
       });
       for (let x = 0; x < this.muted.length; x++) {
         let member = await guild.members.fetch(this.muted[x]);
-        if (member) await member.roles.add(role as Role);
+        if (member)
+          await member.roles
+            .add(role as Role)
+            .then(() => {
+              console.log(`Added ${role?.name} from ${member.displayName}`);
+            })
+            .catch((e) => {
+              console.log(
+                `Error while adding ${role?.name} from ${member.displayName}`
+              );
+            });
       }
     }
   }
