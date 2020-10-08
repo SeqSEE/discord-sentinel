@@ -24,16 +24,19 @@ import fs from 'fs';
 import path from 'path';
 import { TextChannel } from 'discord.js';
 import DiscordHandler from './internal/DiscordHandler';
+import MuteHandler from './MuteHandler';
 
 const warningsFile = '../../data/warnings.json';
 
 export default class WarningHandler {
   private discord: DiscordHandler;
+  private muteHandler: MuteHandler;
   private warnings: Map<string, number>;
   private checking: boolean;
   private warningLoop: NodeJS.Timeout | null;
-  constructor(discord: DiscordHandler) {
+  constructor(discord: DiscordHandler, muteHandler: MuteHandler) {
     this.discord = discord;
+    this.muteHandler = muteHandler;
     this.warnings = new Map<string, number>();
     this.checking = false;
     this.warningLoop = null;
@@ -103,6 +106,9 @@ export default class WarningHandler {
     };
     this.warnings.set(id, lvl);
     this.save();
+    if (lvl >= Number(process.env.MAX_WARN)) {
+      this.muteHandler.mute(id, 0, 'Exceeded maximum warning level');
+    }
     let chan = await this.discord.getClient().channels.fetch(channel);
     if (chan instanceof TextChannel) {
       (chan as TextChannel).send(warnEmbed);

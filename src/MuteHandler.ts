@@ -28,7 +28,7 @@ export default class MuteHandler {
     this.discord = discord;
     this.load();
   }
-  public mute(id: string, level: number, reason: string) {
+  public mute(id: string, length: number, reason: string) {
     throw new Error('Method not implemented.');
   }
   private load() {
