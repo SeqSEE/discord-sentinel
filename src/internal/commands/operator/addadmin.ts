@@ -70,8 +70,8 @@ export async function addadmin(
         else if (user) user.send(`Error: Cannot add SUPER_ADMIN '${mention]}'`);
       } else {
         if (cmdHandler.getAdmins().indexOf(u.id) > -1) {
-          if (chan) chan.send(`Error: '${args[1]}' is already an admin`);
-          else if (user) user.send(`Error: '${args[1]}' is already an admin`);
+          if (chan) chan.send(`Error: '${mention}' is already an admin`);
+          else if (user) user.send(`Error: '${mention}' is already an admin`);
         } else {
           cmdHandler.addAdmin(u.id);
           if (chan) chan.send(`Added <@${u.id}> to admins`);
