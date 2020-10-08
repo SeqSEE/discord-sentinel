@@ -79,7 +79,7 @@ export default class WarningHandler {
     reason: string
   ): Promise<void> {
     let lvl: number = !this.warnings.has(id)
-      ? 0
+      ? 0 + level
       : Number(this.warnings.get(id)) + level;
     let warnEmbed = {
       embed: {
