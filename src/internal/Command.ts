@@ -54,7 +54,7 @@ export default class Command {
     return this.aliases;
   }
 
-  public getHelpSection() {
+  public getHelpSection(): { name: string; value: string; inline: boolean } {
     return {
       name: `${process.env.CMD_PREFIX}${this.getName()}`,
       value: `${this.getUsage()}`,

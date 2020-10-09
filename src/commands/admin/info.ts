@@ -32,10 +32,14 @@ import MessageObject from '../../interface/MessageObject';
 import UserInfo from '../../interface/UserInfo';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
+import MuteHandler from '../../MuteHandler';
+import WarningHandler from '../../WarningHandler';
 
-export async function infocommand(
+export async function info(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
+  warnHandler: WarningHandler,
+  muteHandler: MuteHandler,
   messageObj: MessageObject
 ): Promise<void> {
   let user = await discord.getClient().users.fetch(messageObj.author);
@@ -69,15 +73,15 @@ export async function infocommand(
       if (chan instanceof TextChannel) {
         let bans = await (chan as TextChannel).guild.fetchBans();
         let ban: { user: User; reason: string } | undefined = bans
-          .filter((b) => b.user.id === user!.id)
+          .filter((b) => b.user.id === target!.id)
           .first();
-        let status: PresenceStatus = user.presence.status;
+        let status: PresenceStatus = target.presence.status;
         let g: GuildMember = await (chan as TextChannel).guild.members.fetch(
-          user
+          target
         );
         let joined: Date = (g.joinedAt as Date) || new Date();
-        let createdAt: Date = user.createdAt;
-        let display = `${user.username}#${user.discriminator}`;
+        let createdAt: Date = target.createdAt;
+        let display = `${target.username}#${target.discriminator}`;
         let nick = g.nickname || '';
         let mainRole: Role = g.roles.highest;
         let t: Collection<string, Role> = g.roles.cache;
@@ -88,7 +92,7 @@ export async function infocommand(
         let i: UserInfo;
         if (!ban)
           i = {
-            admin: cmdHandler.isAdmin(user.id),
+            admin: cmdHandler.isAdmin(target.id),
             status,
             joined: joined.toString(),
             createdAt: createdAt.toString(),
@@ -100,7 +104,7 @@ export async function infocommand(
           };
         else
           i = {
-            admin: cmdHandler.isAdmin(user.id),
+            admin: cmdHandler.isAdmin(target.id),
             status,
             joined: joined.toString(),
             createdAt: createdAt.toString(),
@@ -156,12 +160,16 @@ export async function infocommand(
               },
               {
                 name: 'Warning Level',
-                value: '0/10',
+                value: `${warnHandler.getLevel(target.id)}/${Number(
+                  process.env.MAX_WARN
+                )}`,
                 inline: true,
               },
               {
                 name: 'Mute',
-                value: 'Not Muted',
+                value: `${
+                  muteHandler.mutedUntil(target.id) > 0 ? 'Muted' : 'Not Muted'
+                }`,
                 inline: true,
               },
               {

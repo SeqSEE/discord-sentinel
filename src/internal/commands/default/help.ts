@@ -36,6 +36,14 @@ export async function help(
   let chan: TextChannel | null =
     c instanceof TextChannel ? (c as TextChannel) : null;
   let args = discord.util.parseArgs(messageObj.content);
+  let commands: { name: string; value: string; inline: boolean }[] = [];
+  cmdHandler.getCommands().map((cmd) => {
+    let command = cmdHandler.getCommand(cmd);
+    if (command && command.isEnabled()) {
+      commands.push(command.getHelpSection());
+    }
+  });
+
   let helpEmbed = {
     embed: {
       color: 8359053,
@@ -46,14 +54,7 @@ export async function help(
       title: `**HELP**`,
       url: '',
       description: `** **`,
-      fields: [
-        cmdHandler.getCommands().map((cmd) => {
-          let command = cmdHandler.getCommand(cmd);
-          if (command && command.isEnabled()) {
-            return command.getHelpSection();
-          }
-        }),
-      ],
+      fields: [commands],
       timestamp: new Date(),
       image: {
         url: '',
