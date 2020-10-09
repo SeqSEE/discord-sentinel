@@ -86,7 +86,10 @@ export async function ban(
               if (member) {
                 let u: User | undefined = await discord.util.parseUser(uname);
                 member
-                  .ban({ days: days, reason })
+                  .ban({
+                    days: days,
+                    reason: `${reason} by ${messageObj.author}`,
+                  })
                   .then(async () => {
                     if (chan)
                       await chan.send(

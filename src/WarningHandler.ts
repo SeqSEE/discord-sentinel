@@ -34,31 +34,38 @@ export default class WarningHandler {
   private warned: string[];
   private warnings: Map<string, number>;
   private checking: boolean;
-  private warningLoop: NodeJS.Timeout | null;
   constructor(discord: DiscordHandler, muteHandler: MuteHandler) {
     this.discord = discord;
     this.muteHandler = muteHandler;
     this.warned = [];
     this.warnings = new Map<string, number>();
     this.checking = false;
-    this.warningLoop = null;
     this.load();
   }
 
+  public start() {
+    console.log(`${Date()} started WarningHandler`);
+    this.check();
+    setInterval(() => {
+      console.log(`${Date()} check warnings`);
+      this.check();
+      console.log(`${Date()} finished checking warnings`);
+    }, 3600000);
+  }
   private check() {
     if (this.checking) return;
     this.checking = true;
     for (let x = 0; x < this.warned.length; x++) {
       let level = Number(this.warnings.get(this.warned[x]));
-      if (level - 1 > 1) {
+      if (level - 1 < 1) {
         this.warnings.delete(this.warned[x]);
+        delete this.warned[x];
       } else {
         this.warnings.set(this.warned[x], level - 1);
       }
     }
-
-    this.save();
     this.checking = false;
+    this.save();
   }
 
   public pardon(id: string, level: number) {
@@ -130,7 +137,7 @@ export default class WarningHandler {
       await this.muteHandler.mute(
         channel,
         id,
-        3600,
+        60,
         'Exceeded maximum warning level'
       );
     }
@@ -146,22 +153,19 @@ export default class WarningHandler {
       let w: { id: string; level: number }[] = JSON.parse(
         fs.readFileSync(warningsFile).toString('utf8')
       );
-      w.forEach((warn) => {
+      w.forEach(async (warn) => {
         this.warnings.set(warn.id, warn.level);
         this.warned.push(warn.id);
         if (warn.level >= Number(process.env.MAX_WARN)) {
-          this.muteHandler.mute(
+          await this.muteHandler.mute(
             process.env.DEFAULT_CHAN as string,
             warn.id,
-            3600,
+            60,
             'Exceeded maximum warning level'
           );
         }
       });
     }
-    this.warningLoop = setInterval(() => {
-      this.check();
-    }, 3600000);
   }
 
   public save(): void {

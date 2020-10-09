@@ -43,7 +43,7 @@ export async function unban(
     return;
   }
   let args = discord.util.parseArgs(messageObj.content);
-  if (args.length < 2) {
+  if (args.length < 1) {
     if (chan)
       chan.send(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}unban <user>`
@@ -52,57 +52,47 @@ export async function unban(
       user.send(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}unban <user>`
       );
+  } else {
+    let uname = args[0];
+    let target: User | undefined = await discord.util.parseUser(uname);
+
+    if (!target) {
+      if (chan) chan.send(`Error: Invalid user ${uname}`);
+      else if (user) user.send(`Error: Invalid user ${uname}`);
     } else {
-      let uname = args[0];
-      let target: User | undefined = await discord.util.parseUser(uname);
-  
-      if (!target) {
-        if (chan) chan.send(`Error: Invalid user ${uname}`);
-        else if (user) user.send(`Error: Invalid user ${uname}`);
+      if (target.id === process.env.SUPER_ADMIN) {
+        if (chan) chan.send(`Error: Cannot unban SUPER_ADMIN '${uname}'`);
+        else if (user) user.send(`Error: Cannot unban SUPER_ADMIN '${uname}'`);
+      } else if (cmdHandler.isAdmin(target.id)) {
+        if (chan) chan.send(`Error: Cannot unban admin '${uname}'`);
+        else if (user) user.send(`Error: Cannot unban admin '${uname}'`);
       } else {
-        if (target.id === process.env.SUPER_ADMIN) {
-          if (chan) chan.send(`Error: Cannot unban SUPER_ADMIN '${uname}'`);
-          else if (user) user.send(`Error: Cannot unban SUPER_ADMIN '${uname}'`);
-        } else if (cmdHandler.isAdmin(target.id)) {
-          if (chan) chan.send(`Error: Cannot unban admin '${uname}'`);
-          else if (user) user.send(`Error: Cannot unban admin '${uname}'`);
-        } else {
-            if (chan instanceof TextChannel) {
-            let member:
-              | GuildMember
-              | undefined = await chan.guild.members.fetch(target);
-              if (!member) {
-                if (chan) chan.send(`Error: Failed to Unban User '${uname}'`);
-                else if (user) user.send(`Error: Failed to Unban User '${uname}'`);
-                return;
-          }else {
-            let u: User | undefined = await discord.util.parseUser(uname);
-                member
-                await chan.guild.members.unban(member.user)
-                  .then(async () => {
-                    if (chan)
-                      await chan.send(
-                        `${u} Sucessfully Unbanned by ${messageObj.author}`
-                      );
-                    else if (user)
-                      await user.send(
-                        `${u} Sucessfully Unbanned by ${messageObj.author}`
-                      );
-                  })
-                  .catch(async (e: Error) => {
-                    console.log(JSON.stringify(e));
-                    if (chan)
-                      await chan.send(
-                        `Error: An error occured when attempting to unban '${u}'`
-                      );
-                    else if (user)
-                      await user.send(
-                        `Error: An error occured when attempting to unban '${u}'`
-                        );
-                      });
-                  }
-                }
-              }
-            }
-          }
+        if (chan instanceof TextChannel) {
+          await chan.guild.members
+            .unban(target)
+            .then(async () => {
+              if (chan)
+                await chan.send(
+                  `${uname} Sucessfully Unbanned by ${messageObj.author}`
+                );
+              else if (user)
+                await user.send(
+                  `${uname} Sucessfully Unbanned by ${messageObj.author}`
+                );
+            })
+            .catch(async (e: Error) => {
+              console.log(JSON.stringify(e));
+              if (chan)
+                await chan.send(
+                  `Error: An error occured when attempting to unban '${uname}'`
+                );
+              else if (user)
+                await user.send(
+                  `Error: An error occured when attempting to unban '${uname}'`
+                );
+            });
+        }
+      }
+    }
+  }
 }

@@ -32,39 +32,35 @@ export default class MuteHandler {
   private muted: string[];
   private mutedMap: Map<string, number>;
   private checking: boolean;
-  private mutedLoop: NodeJS.Timeout | null;
   constructor(discord: DiscordHandler) {
     this.discord = discord;
     this.muted = [];
     this.mutedMap = new Map<string, number>();
     this.checking = false;
-    this.mutedLoop = null;
     this.load();
   }
 
-  private async check() {
+  public start() {
+    let check = () => {
+      console.log(`${Date()} checking mutes`);
+      this.check();
+      console.log(`${Date()} finished checking mutes`);
+    };
+    console.log(`${Date()} started MuteHandler`);
+    setInterval(check, 60000);
+  }
+
+  private check() {
     if (this.checking) return;
     this.checking = true;
     for (let x = 0; x < this.muted.length; x++) {
       let end = Number(this.mutedMap.get(this.muted[x]));
       if (Math.floor(Date.now() / 1000) - end > 0) {
-        let guild: Guild = ((await this.discord
-          .getClient()
-          .channels.fetch(process.env.DEFAULT_CHAN as string)) as TextChannel)
-          .guild;
-        let role: Role | undefined = guild.roles.cache.find(
-          (role) => role.name === 'sentinel-muted'
-        );
-        if (role) {
-          let member = await guild.members.fetch(this.muted[x]);
-          if (member) await member.roles.remove(role as Role);
-          this.mutedMap.delete(this.muted[x]);
-          delete this.muted[x];
-        }
+        this.unmute(this.muted[x]);
       }
     }
-    this.save();
     this.checking = false;
+    this.save();
   }
 
   public mutedUntil(id: string) {
@@ -100,13 +96,7 @@ export default class MuteHandler {
     length: number,
     reason: string
   ) {
-    let end = Math.floor(Date.now() / 1000) + length * 60000;
-    let date = new Date(end * 1000);
-    let hours = date.getHours();
-    let minutes = '0' + date.getMinutes();
-    let seconds = '0' + date.getSeconds();
-    let formattedTime =
-      hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+    let end = Date.now() + length * 60000;
 
     let muteEmbed = {
       embed: {
@@ -131,7 +121,7 @@ export default class MuteHandler {
           },
           {
             name: `Ends`,
-            value: `${formattedTime}`,
+            value: `${new Date(end)}`,
             inline: false,
           },
         ],
@@ -145,7 +135,7 @@ export default class MuteHandler {
         },
       },
     };
-    this.mutedMap.set(id, end);
+    this.mutedMap.set(id, Math.floor(end / 1000));
     if (this.muted.indexOf(id) === -1) this.muted.push(id);
     let guild: Guild = ((await this.discord
       .getClient()
@@ -163,7 +153,7 @@ export default class MuteHandler {
     if (chan instanceof TextChannel) {
       (chan as TextChannel).send(muteEmbed);
     }
-    return this.save();
+    this.save();
   }
   private load() {
     if (fs.existsSync(mutedFile)) {
@@ -171,13 +161,14 @@ export default class MuteHandler {
         fs.readFileSync(mutedFile).toString('utf8')
       );
       m.forEach((mute) => {
-        this.mutedMap.set(mute.id, mute.end);
-        if (this.muted.indexOf(mute.id) === -1) this.muted.push(mute.id);
+        this.mute(
+          process.env.DEFAULT_CHAN as string,
+          mute.id,
+          -1 * (Math.floor(Date.now() / 1000) - mute.end),
+          'Loaded muted'
+        );
       });
     }
-    this.mutedLoop = setInterval(() => {
-      this.check();
-    }, 60000);
   }
 
   public save(): void {
@@ -234,17 +225,23 @@ export default class MuteHandler {
                   ADD_REACTIONS: false,
                 })
                 .then(() => {
-                  console.log(`Updated ${channel.name} - ${channel.id}`);
+                  console.log(
+                    `${Date()} Updated ${channel.name} - ${channel.id}`
+                  );
                 })
                 .catch((e) => {
                   console.log(
-                    `Error while updating ${channel.name} - ${channel.id}`
+                    `${Date()} Error while updating ${channel.name} - ${
+                      channel.id
+                    }`
                   );
                 });
             })
             .catch((e) => {
               console.log(
-                `Error while updating Sentinel's role for ${channel.name} - ${channel.id}`
+                `${Date()} Error while updating Sentinel's role for ${
+                  channel.name
+                } - ${channel.id}`
               );
             });
         }
@@ -275,7 +272,9 @@ export default class MuteHandler {
             })
             .then(() => {
               console.log(
-                `Updated Sentinel's role for ${channel.name} - ${channel.id}`
+                `${Date()} Updated Sentinel's role for ${channel.name} - ${
+                  channel.id
+                }`
               );
               channel
                 .updateOverwrite(role as Role, {
@@ -283,17 +282,23 @@ export default class MuteHandler {
                   ADD_REACTIONS: false,
                 })
                 .then(() => {
-                  console.log(`Updated ${channel.name} - ${channel.id}`);
+                  console.log(
+                    `${Date()} Updated ${channel.name} - ${channel.id}`
+                  );
                 })
                 .catch((e) => {
                   console.log(
-                    `Error while updating ${channel.name} - ${channel.id}`
+                    `${Date()} Error while updating ${channel.name} - ${
+                      channel.id
+                    }`
                   );
                 });
             })
             .catch((e) => {
               console.log(
-                `Error while updating Sentinel's role for ${channel.name} - ${channel.id}`
+                `${Date()} Error while updating Sentinel's role for ${
+                  channel.name
+                } - ${channel.id}`
               );
             });
         }
@@ -304,11 +309,15 @@ export default class MuteHandler {
         member.roles
           .remove(role as Role)
           .then(() => {
-            console.log(`Removed ${role?.name} from ${member.displayName}`);
+            console.log(
+              `${Date()} Removed ${role?.name} from ${member.displayName}`
+            );
           })
           .catch((e) => {
             console.log(
-              `Error while removing ${role?.name} from ${member.displayName}`
+              `${Date()} Error while removing ${role?.name} from ${
+                member.displayName
+              }`
             );
           });
       });
@@ -318,11 +327,15 @@ export default class MuteHandler {
           await member.roles
             .add(role as Role)
             .then(() => {
-              console.log(`Added ${role?.name} from ${member.displayName}`);
+              console.log(
+                `${Date()} Added ${role?.name} from ${member.displayName}`
+              );
             })
             .catch((e) => {
               console.log(
-                `Error while adding ${role?.name} from ${member.displayName}`
+                `${Date()}Error while adding ${role?.name} from ${
+                  member.displayName
+                }`
               );
             });
       }
