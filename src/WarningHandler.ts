@@ -46,11 +46,14 @@ export default class WarningHandler {
   public start() {
     console.log(`${Date()} started WarningHandler`);
     this.check();
-    setInterval(() => {
-      console.log(`${Date()} check warnings`);
-      this.check();
-      console.log(`${Date()} finished checking warnings`);
-    }, 3600000);
+    setTimeout(()=>{
+      setInterval(() => {
+        console.log(`${Date()} check warnings`);
+        this.check();
+        console.log(`${Date()} finished checking warnings`);
+      }, 3600000);
+    }, 3600000)
+    
   }
   private check() {
     if (this.checking) return;
