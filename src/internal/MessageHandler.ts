@@ -38,7 +38,7 @@ export default class MessageHandler {
     let m = msgObj.content.split(' ');
     if (m.length > this.commandHandler.getCmdPrefix().length - 1) {
       if (this.commandHandler) {
-        const command = this.commandHandler.getCommand(
+        const command = this.getCommandHandler().getCommand(
           m[0]
             .toLowerCase()
             .substring(this.commandHandler.getCmdPrefix().length)
