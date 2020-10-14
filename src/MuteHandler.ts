@@ -262,9 +262,6 @@ export default class MuteHandler {
           let sentinel: Role | undefined = guild.roles.cache.find(
             (role) => role.id === member?.roles.highest.id
           );
-          if (this.muted.indexOf(member?.id as string) === -1) {
-          } else {
-          }
           channel
             .updateOverwrite(sentinel as Role, {
               SEND_MESSAGES: true,
