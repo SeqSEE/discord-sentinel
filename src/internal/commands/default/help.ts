@@ -36,11 +36,10 @@ export async function help(
   let chan: TextChannel | null =
     c instanceof TextChannel ? (c as TextChannel) : null;
   let args = discord.util.parseArgs(messageObj.content);
-  let commands: { name: string; value: string; inline: boolean }[] = [];
-  cmdHandler.getCommands().map((cmd) => {
+  let commands = cmdHandler.getCommands().map((cmd) => {
     let command = cmdHandler.getCommand(cmd);
     if (command && command.isEnabled()) {
-      commands.push(command.getHelpSection());
+      return command.getHelpSection();
     }
   });
 
@@ -66,25 +65,25 @@ export async function help(
     },
   };
   if (args.length < 1) {
-    if (chan) chan.send(helpEmbed);
-    else if (user) user.send(helpEmbed);
+    if (chan) await chan.send(helpEmbed);
+    else if (user) await user.send(helpEmbed);
   } else {
     const command = args[0];
     const cmd: Command | undefined = cmdHandler.getCommand(
-      `${cmdHandler.getCmdPrefix()}${command}`
+      `${command}`
     );
     if (cmd) {
       if (chan)
-        chan.send(`Usage:\n${cmdHandler.getCmdPrefix()}${cmd.getUsage()}`);
+        await chan.send(`Usage:\n${cmdHandler.getCmdPrefix()}${cmd.getUsage()}`);
       else if (user)
-        user.send(`Usage:\n${cmdHandler.getCmdPrefix()}${cmd.getUsage()}`);
+        await user.send(`Usage:\n${cmdHandler.getCmdPrefix()}${cmd.getUsage()}`);
     } else {
       if (chan)
-        chan.send(
+      await  chan.send(
           `Error: ${cmdHandler.getCmdPrefix()}${command} is not a registered command.`
         );
       else if (user)
-        user.send(
+      await user.send(
           `Error: ${cmdHandler.getCmdPrefix()}${command} is not a registered command.`
         );
     }
