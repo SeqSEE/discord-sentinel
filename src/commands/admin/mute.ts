@@ -24,10 +24,12 @@ import { TextChannel, User } from 'discord.js';
 import MessageObject from '../../interface/MessageObject';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
+import MuteHandler from '../../MuteHandler';
 
-export async function mutecommand(
+export async function mute(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
+  muteHandler: MuteHandler,
   messageObj: MessageObject
 ): Promise<void> {
   let user = await discord.getClient().users.fetch(messageObj.author);
@@ -42,30 +44,38 @@ export async function mutecommand(
     else if (user) user.send('Error: Permission Denied');
     return;
   }
-  let m = messageObj.content.split(/\s+/);
-  if (m.length < 2) {
+  let args = discord.util.parseArgs(messageObj.content);
+  if (args.length < 3) {
     if (chan)
       chan.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}mute <user> (length)`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}mute <user> <length> <reason>`
       );
     else if (user)
       user.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}mute <user> (length)`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}mute <user> <length> <reason>`
       );
   } else {
-    let target: User | undefined = await discord.util.parseUser(m[1]);
+    let target: User | undefined = await discord.util.parseUser(args[0]);
     if (!target) {
-      if (chan) chan.send(`Error: Invalid user ${m[1]}`);
-      else if (user) user.send(`Error: Invalid user ${m[1]}`);
+      if (chan) chan.send(`Error: Invalid user ${args[0]}`);
+      else if (user) user.send(`Error: Invalid user ${args[0]}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot mute SUPER_ADMIN '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot mute SUPER_ADMIN '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot mute SUPER_ADMIN '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot mute SUPER_ADMIN '${args[0]}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot mute admin '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot mute admin '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot mute admin '${args[0]}'`);
+        else if (user) user.send(`Error: Cannot mute admin '${args[0]}'`);
       } else {
-        //mute the user
+        let time = Number(args[1]);
+        args.shift();
+        args.shift();
+        await muteHandler.mute(
+          (chan as TextChannel).id,
+          target.id,
+          time,
+          args.join(' ')
+        );
       }
     }
   }

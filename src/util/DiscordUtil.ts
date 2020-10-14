@@ -135,12 +135,13 @@ export default class DiscordUtil {
   }
 
   public async parseUser(input: string): Promise<User | undefined> {
-    let search: string = input;
-    let user: User | undefined = undefined;
     if (input.startsWith('<@') && input.endsWith('>')) {
-      search = input.slice(2, input.length - 1);
+      input = input.slice(2, -1);
+
+      if (input.startsWith('!')) {
+        input = input.slice(1);
+      }
     }
-    if (!search.startsWith('!')) user = await this.client.users.fetch(search);
-    return user;
+    return await this.client.users.fetch(input);
   }
 }

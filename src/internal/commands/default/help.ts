@@ -35,7 +35,14 @@ export async function help(
   let c = await discord.getClient().channels.fetch(messageObj.channel);
   let chan: TextChannel | null =
     c instanceof TextChannel ? (c as TextChannel) : null;
-  let m = messageObj.content.split(/\s+/);
+  let args = discord.util.parseArgs(messageObj.content);
+  let commands = cmdHandler.getCommands().map((cmd) => {
+    let command = cmdHandler.getCommand(cmd);
+    if (command && command.isEnabled()) {
+      return command.getHelpSection();
+    }
+  });
+
   let helpEmbed = {
     embed: {
       color: 8359053,
@@ -46,14 +53,7 @@ export async function help(
       title: `**HELP**`,
       url: '',
       description: `** **`,
-      fields: [
-        cmdHandler.getCommands().map((cmd) => {
-          let command = cmdHandler.getCommand(cmd);
-          if (command && command.isEnabled()) {
-            return command.getHelpSection();
-          }
-        }),
-      ],
+      fields: [commands],
       timestamp: new Date(),
       image: {
         url: '',
@@ -64,26 +64,26 @@ export async function help(
       },
     },
   };
-  if (m.length < 2) {
-    if (chan) chan.send(helpEmbed);
-    else if (user) user.send(helpEmbed);
+  if (args.length < 1) {
+    if (chan) await chan.send(helpEmbed);
+    else if (user) await user.send(helpEmbed);
   } else {
-    const command = m[1];
+    const command = args[0];
     const cmd: Command | undefined = cmdHandler.getCommand(
-      `${cmdHandler.getCmdPrefix()}${command}`
+      `${command}`
     );
     if (cmd) {
       if (chan)
-        chan.send(`Usage:\n${cmdHandler.getCmdPrefix()}${cmd.getUsage()}`);
+        await chan.send(`Usage:\n${cmdHandler.getCmdPrefix()}${cmd.getUsage()}`);
       else if (user)
-        user.send(`Usage:\n${cmdHandler.getCmdPrefix()}${cmd.getUsage()}`);
+        await user.send(`Usage:\n${cmdHandler.getCmdPrefix()}${cmd.getUsage()}`);
     } else {
       if (chan)
-        chan.send(
+      await  chan.send(
           `Error: ${cmdHandler.getCmdPrefix()}${command} is not a registered command.`
         );
       else if (user)
-        user.send(
+      await user.send(
           `Error: ${cmdHandler.getCmdPrefix()}${command} is not a registered command.`
         );
     }

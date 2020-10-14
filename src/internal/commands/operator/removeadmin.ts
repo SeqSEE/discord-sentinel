@@ -39,8 +39,8 @@ export async function removeadmin(
     else if (user) user.send('Error: Permission Denied');
     return;
   }
-  let m = messageObj.content.split(/\s+/);
-  if (m.length < 2) {
+  let args = discord.util.parseArgs(messageObj.content);
+  if (args.length < 1) {
     if (chan)
       chan.send(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}removeadmin <user>`
@@ -50,7 +50,7 @@ export async function removeadmin(
         `Error: Invalid arguments\nUsage:\n${cmdHandler}removeadmin <user>`
       );
   } else {
-    let mention = m[1];
+    let mention = args[0];
     if (mention.match(discord.util.regexMention)) {
       if (mention.startsWith('<@') && mention.endsWith('>')) {
         mention = mention.slice(2, -1);
@@ -62,16 +62,16 @@ export async function removeadmin(
     }
     let u: User | undefined = await discord.util.parseUser(mention);
     if (!u) {
-      if (chan) chan.send(`Error: Invalid user ${m[1]}`);
-      else if (user) user.send(`Error: Invalid user ${m[1]}`);
+      if (chan) chan.send(`Error: Invalid user ${mention}`);
+      else if (user) user.send(`Error: Invalid user ${mention}`);
     } else {
       if (u.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot remove SUPER_ADMIN '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot remove SUPER_ADMIN '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot remove SUPER_ADMIN '${mention}'`);
+        else if (user) user.send(`Error: Cannot remove SUPER_ADMIN '${mention}'`);
       } else {
         if (cmdHandler.getAdmins().indexOf(u.id) < 0) {
-          if (chan) chan.send(`Error: '${m[1]}' is not an admin`);
-          else if (user) user.send(`Error: '${m[1]}' is not an admin`);
+          if (chan) chan.send(`Error: '${mention}' is not an admin`);
+          else if (user) user.send(`Error: '${mention}' is not an admin`);
         } else {
           cmdHandler.removeAdmin(u.id);
           if (chan) chan.send(`Removed <@${u.id}> from admins`);

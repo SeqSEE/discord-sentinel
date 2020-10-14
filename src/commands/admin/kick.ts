@@ -20,12 +20,12 @@
  THE SOFTWARE.
  */
 
-import { TextChannel, User } from 'discord.js';
+import { GuildMember, TextChannel, User } from 'discord.js';
 import MessageObject from '../../interface/MessageObject';
 import CommandHandler from '../../internal/CommandHandler';
 import DiscordHandler from '../../internal/DiscordHandler';
 
-export async function unmutecommand(
+export async function kick(
   discord: DiscordHandler,
   cmdHandler: CommandHandler,
   messageObj: MessageObject
@@ -42,30 +42,60 @@ export async function unmutecommand(
     else if (user) user.send('Error: Permission Denied');
     return;
   }
-  let m = messageObj.content.split(/\s+/);
-  if (m.length < 2) {
+  let args = discord.util.parseArgs(messageObj.content);
+  if (args.length < 2) {
     if (chan)
       chan.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}unmute <user>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user> <reason>`
       );
     else if (user)
       user.send(
-        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}unmute <user>`
+        `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}kick <user> <reason>`
       );
   } else {
-    let target: User | undefined = await discord.util.parseUser(m[1]);
+    let u = args[0];
+    let target: User | undefined = await discord.util.parseUser(u);
+    args.shift();
     if (!target) {
-      if (chan) chan.send(`Error: Invalid user ${m[1]}`);
-      else if (user) user.send(`Error: Invalid user ${m[1]}`);
+      if (chan) chan.send(`Error: Invalid user ${u}`);
+      else if (user) user.send(`Error: Invalid user ${u}`);
     } else {
       if (target.id === process.env.SUPER_ADMIN) {
-        if (chan) chan.send(`Error: Cannot unmute SUPER_ADMIN '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot unmute SUPER_ADMIN '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot kick SUPER_ADMIN '${u}'`);
+        else if (user) user.send(`Error: Cannot kick SUPER_ADMIN '${u}'`);
       } else if (cmdHandler.isAdmin(target.id)) {
-        if (chan) chan.send(`Error: Cannot unmute admin '${m[1]}'`);
-        else if (user) user.send(`Error: Cannot unmute admin '${m[1]}'`);
+        if (chan) chan.send(`Error: Cannot kick admin '${u}'`);
+        else if (user) user.send(`Error: Cannot kick admin '${u}'`);
       } else {
-        //unmute the user
+        if (args.length < 1) {
+          if (chan) chan.send(`Error: Must include reason`);
+          else if (user) user.send(`Error: Must include reason`);
+        } else {
+          if (chan instanceof TextChannel) {
+            let member:
+              | GuildMember
+              | undefined = await chan.guild.members.fetch(target);
+            if (member) {
+              member
+                .kick(args.join(' '))
+                .then(async () => {
+                  if (chan) await chan.send(`Kicked '${u}'`);
+                  else if (user) await user.send(`Kicked '${u}'`);
+                })
+                .catch(async (e: Error) => {
+                  console.log(JSON.stringify(e));
+                  if (chan)
+                    await chan.send(
+                      `Error: An error occured when attempting to kick '${u}'`
+                    );
+                  else if (user)
+                    await user.send(
+                      `Error: An error occured when attempting to kick '${u}'`
+                    );
+                });
+            }
+          }
+        }
       }
     }
   }
