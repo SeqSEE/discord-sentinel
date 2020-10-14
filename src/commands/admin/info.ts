@@ -166,9 +166,9 @@ export async function info(
                 inline: true,
               },
               {
-                name: 'Mute',
+                name: 'Muted Until',
                 value: `${
-                  muteHandler.mutedUntil(target.id) > 0 ? 'Muted' : 'Not Muted'
+                  muteHandler.mutedUntil(target.id) > 0 ? new Date(muteHandler.mutedUntil(target.id)) : 'Not Muted'
                 }`,
                 inline: true,
               },
