@@ -156,9 +156,9 @@ export default class MuteHandler {
     this.save();
   }
   private load() {
-    if (fs.existsSync(mutedFile)) {
+    if (fs.existsSync(path.join(__dirname, mutedFile))) {
       let m: { id: string; end: number }[] = JSON.parse(
-        fs.readFileSync(mutedFile).toString('utf8')
+        fs.readFileSync(path.join(__dirname, mutedFile)).toString('utf8')
       );
       m.forEach((mute) => {
         this.mute(
@@ -262,6 +262,9 @@ export default class MuteHandler {
           let sentinel: Role | undefined = guild.roles.cache.find(
             (role) => role.id === member?.roles.highest.id
           );
+          if (this.muted.indexOf(member?.id as string) === -1) {
+          } else {
+          }
           channel
             .updateOverwrite(sentinel as Role, {
               SEND_MESSAGES: true,
