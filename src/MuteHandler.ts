@@ -151,7 +151,7 @@ export default class MuteHandler {
 
     let chan = await this.discord.getClient().channels.fetch(channel);
     if (chan instanceof TextChannel) {
-      (chan as TextChannel).send(muteEmbed);
+      await (chan as TextChannel).send(muteEmbed);
     }
     this.save();
   }
