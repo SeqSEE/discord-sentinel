@@ -45,7 +45,7 @@ export async function mute(
     return;
   }
   let args = discord.util.parseArgs(messageObj.content);
-  if (args.length < 2) {
+  if (args.length < 3) {
     if (chan)
       chan.send(
         `Error: Invalid arguments\nUsage:\n${cmdHandler.getCmdPrefix()}mute <user> <length> <reason>`
