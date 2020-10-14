@@ -60,7 +60,7 @@ export default class Commands extends InternalCommands {
       async (messageObj: MessageObject) => {
         if (Number(process.env.DEBUG) === 1)
           console.log(`${Date()} author: ${messageObj.author} command: ping`);
-        return ping(this.getDiscord(), messageObj);
+        return await ping(this.getDiscord(), messageObj);
       }
     );
     this.registerCommand(

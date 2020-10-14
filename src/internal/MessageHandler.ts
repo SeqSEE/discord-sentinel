@@ -35,8 +35,8 @@ export default class MessageHandler {
   }
 
   public handleMessage(msgObj: MessageObject) {
-    let m = msgObj.content.split(' ');
-    if (m.length > this.commandHandler.getCmdPrefix().length - 1) {
+    let m = msgObj.content.split(/\s+/);
+    if (m[0].length > this.commandHandler.getCmdPrefix().length - 1) {
       if (this.commandHandler) {
         const command = this.getCommandHandler().getCommand(
           m[0]

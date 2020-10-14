@@ -32,6 +32,6 @@ export async function ping(
   let c = await discord.getClient().channels.fetch(messageObj.channel);
   let chan: TextChannel | null =
     c instanceof TextChannel ? (c as TextChannel) : null;
-  if (chan) chan.send('pong!');
-  else if (user) user.send('pong!');
+  if (chan) await chan.send('pong!');
+  else if (user) await user.send('pong!');
 }

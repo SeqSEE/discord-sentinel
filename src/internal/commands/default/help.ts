@@ -36,10 +36,12 @@ export async function help(
   let chan: TextChannel | null =
     c instanceof TextChannel ? (c as TextChannel) : null;
   let args = discord.util.parseArgs(messageObj.content);
-  let commands = cmdHandler.getCommands().map((cmd) => {
+  let commands: { name: string; value: string; inline: boolean }[] = [];
+  cmdHandler.getCommands().map((cmd) => {
     let command = cmdHandler.getCommand(cmd);
     if (command && command.isEnabled()) {
-      return command.getHelpSection();
+      
+      commands.push(command.getHelpSection());
     }
   });
 
