@@ -46,11 +46,14 @@ export default class WarningHandler {
   public start() {
     console.log(`${Date()} started WarningHandler`);
     this.check();
-    setInterval(() => {
-      console.log(`${Date()} check warnings`);
-      this.check();
-      console.log(`${Date()} finished checking warnings`);
-    }, 3600000);
+    setTimeout(()=>{
+      setInterval(() => {
+        console.log(`${Date()} check warnings`);
+        this.check();
+        console.log(`${Date()} finished checking warnings`);
+      }, 3600000);
+    }, 3600000)
+    
   }
   private check() {
     if (this.checking) return;
@@ -149,13 +152,13 @@ export default class WarningHandler {
   }
 
   private load() {
-    if (fs.existsSync(warningsFile)) {
+    if (fs.existsSync(path.join(__dirname, warningsFile))) {
       let w: { id: string; level: number }[] = JSON.parse(
-        fs.readFileSync(warningsFile).toString('utf8')
+        fs.readFileSync(path.join(__dirname, warningsFile)).toString('utf8')
       );
       w.forEach(async (warn) => {
         this.warnings.set(warn.id, warn.level);
-        this.warned.push(warn.id);
+        if(this.warned.indexOf(warn.id) === -1) this.warned.push(warn.id);
         if (warn.level >= Number(process.env.MAX_WARN)) {
           await this.muteHandler.mute(
             process.env.DEFAULT_CHAN as string,

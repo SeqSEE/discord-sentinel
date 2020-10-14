@@ -156,9 +156,9 @@ export default class MuteHandler {
     this.save();
   }
   private load() {
-    if (fs.existsSync(mutedFile)) {
+    if (fs.existsSync(path.join(__dirname, mutedFile))) {
       let m: { id: string; end: number }[] = JSON.parse(
-        fs.readFileSync(mutedFile).toString('utf8')
+        fs.readFileSync(path.join(__dirname, mutedFile)).toString('utf8')
       );
       m.forEach((mute) => {
         this.mute(
