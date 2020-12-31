@@ -71,7 +71,7 @@ export async function warn(
         args.shift();
         args.shift();
         let reason = args.join(' ');
-        return warnHandler.warn(messageObj.channel, target.id, level, reason);
+        return await warnHandler.warn(messageObj.channel, target.id, level, reason);
       }
     }
   }

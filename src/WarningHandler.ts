@@ -40,20 +40,18 @@ export default class WarningHandler {
     this.warned = [];
     this.warnings = new Map<string, number>();
     this.checking = false;
-    this.load();
   }
 
   public start() {
     console.log(`${Date()} started WarningHandler`);
     this.check();
-    setTimeout(()=>{
+    setTimeout(() => {
       setInterval(() => {
         console.log(`${Date()} check warnings`);
         this.check();
         console.log(`${Date()} finished checking warnings`);
       }, 3600000);
-    }, 3600000)
-    
+    }, 3600000);
   }
   private check() {
     if (this.checking) return;
@@ -151,14 +149,14 @@ export default class WarningHandler {
     this.save();
   }
 
-  private load() {
+  public load() {
     if (fs.existsSync(path.join(__dirname, warningsFile))) {
       let w: { id: string; level: number }[] = JSON.parse(
         fs.readFileSync(path.join(__dirname, warningsFile)).toString('utf8')
       );
       w.forEach(async (warn) => {
         this.warnings.set(warn.id, warn.level);
-        if(this.warned.indexOf(warn.id) === -1) this.warned.push(warn.id);
+        if (this.warned.indexOf(warn.id) === -1) this.warned.push(warn.id);
         if (warn.level >= Number(process.env.MAX_WARN)) {
           await this.muteHandler.mute(
             process.env.DEFAULT_CHAN as string,

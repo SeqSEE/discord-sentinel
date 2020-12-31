@@ -20,35 +20,8 @@
  THE SOFTWARE.
  */
 
-import CommandHandler from './CommandHandler';
-import MessageObject from '../interface/MessageObject';
+export default class SpamHandler {
+    constructor() {
 
-export default class MessageHandler {
-  private commandHandler: CommandHandler;
-
-  constructor(commandHandler: CommandHandler) {
-    this.commandHandler = commandHandler;
-  }
-
-  public getCommandHandler(): CommandHandler {
-    return this.commandHandler;    
-  }
-
-  public handleMessage(msgObj: MessageObject) {
-    let m = msgObj.content.split(/\s+/);
-    if (m[0].length > this.commandHandler.getCmdPrefix().length - 1) {
-      if (this.commandHandler) {
-        const command = this.getCommandHandler().getCommand(
-          m[0]
-            .toLowerCase()
-            .substring(this.commandHandler.getCmdPrefix().length)
-        );
-        if (command) {
-          if (command.isEnabled()) {
-            command.execute(msgObj);
-          }
-        } 
-      }
     }
-  }
 }
