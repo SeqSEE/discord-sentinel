@@ -163,7 +163,7 @@ export default class MuteHandler {
         this.mute(
           process.env.DEFAULT_CHAN as string,
           mute.id,
-          -1 * (Math.floor(Date.now() / 1000) - mute.end),
+          -1 * Math.floor(Date.now() / 1000) - mute.end,
           'Loaded muted'
         );
       });
